@@ -1,0 +1,8 @@
+# Store text files with LF line endings in the repo, whatever OS commits them
+* text=auto eol=lf
+
+# Binary files: never touch line endings
+*.png binary
+*.jpg binary
+*.gif binary
+*.zip binary

@@ -1,0 +1,18 @@
+# Dependencies (installed by Composer/npm, never committed)
+/vendor/
+/node_modules/
+
+# Build output
+/build/
+*.zip
+
+# Local tool caches
+/.impeccable/
+.phpcs-cache
+.phpunit.result.cache
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
