@@ -159,8 +159,8 @@ class XOAM_Mailer {
 			return;
 		}
 
-		// Refresh if expired
-		if ( ! empty( $token['expires_at'] ) && time() > (int) $token['expires_at'] ) {
+		// Refresh 60 seconds early so the token can't expire during the SMTP session.
+		if ( ! empty( $token['expires_at'] ) && time() > (int) $token['expires_at'] - 60 ) {
 			XOAM_Logger::log( 'OAuth2 token expired, refreshing.' );
 			$token = XOAM_OAuth::refresh_token( $token, $s );
 		}

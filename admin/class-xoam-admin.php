@@ -59,7 +59,7 @@ class XOAM_Admin {
 			return;
 		}
 
-		$content = __( 'This site sends email through Google Workspace SMTP servers. When debug logging is enabled, the SMTP conversation is stored in the site database; it can include sender and recipient email addresses, but not message content. The most recent 100 entries are kept until an administrator clears the log or the plugin is deleted.', 'xoauth-mailer' );
+		$content = __( 'This site sends email through Google Workspace SMTP servers. Errors, such as failed sends, are always logged in the site database and can include recipient email addresses. When debug logging is enabled, the SMTP conversation is logged too; it can include sender and recipient email addresses, but not message content. The most recent 100 entries are kept until an administrator clears the log or the plugin is deleted.', 'xoauth-mailer' );
 
 		wp_add_privacy_policy_content(
 			__( 'XOAuth Mailer for Google Workspace', 'xoauth-mailer' ),
@@ -130,7 +130,7 @@ class XOAM_Admin {
 		?>
 		<div class="wrap xoam-wrap">
 			<h1>
-				<span class="dashicons dashicons-email-alt" style="font-size:28px;color:#4285F4;vertical-align:middle;"></span>
+				<span class="dashicons dashicons-email-alt" style="font-size:28px;color:#4285F4;vertical-align:middle;" aria-hidden="true"></span>
 				<?php esc_html_e( 'XOAuth Mailer for Google Workspace', 'xoauth-mailer' ); ?>
 				<span class="xoam-version">v<?php echo esc_html( XOAM_VERSION ); ?></span>
 			</h1>
@@ -141,6 +141,12 @@ class XOAM_Admin {
 					<p><?php echo esc_html( $msg ); ?></p>
 				</div>
 			<?php endif; ?>
+
+			<?php
+			// Core only prints the "Settings saved." notice on pages under the Settings
+			// menu. This is a top-level page, so print it here.
+			settings_errors();
+			?>
 
 			<nav class="nav-tab-wrapper">
 				<?php foreach ( $tabs as $key => $label ) : ?>

@@ -15,7 +15,6 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 delete_option( 'xoam_settings' );
 delete_option( 'xoam_debug_log' );
 delete_option( 'xoam_oauth_token' );
-delete_option( 'xoam_activated_at' );
 delete_option( 'xoam_db_version' );
 
 // Legacy data from versions up to 2.1.x (former "dih" prefix), in case the

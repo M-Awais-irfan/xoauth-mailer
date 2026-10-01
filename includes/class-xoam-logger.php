@@ -3,7 +3,8 @@
  * Debug logger.
  *
  * Stores log entries in the database (wp_options).
- * Keeps last 100 entries. Only writes when debug is enabled.
+ * Keeps the last 100 entries. ERROR entries are always written;
+ * other levels only when debug logging is enabled.
  *
  * @package XOAuth_Mailer
  */

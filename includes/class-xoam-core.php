@@ -115,9 +115,6 @@ class XOAM_Core {
 	 * and served through core's existing /wp-json/ rewrite rule.
 	 */
 	public static function activate(): void {
-		// Store activation timestamp
-		update_option( 'xoam_activated_at', time() );
-
 		// Same tasks as an in-place update.
 		self::upgrade();
 

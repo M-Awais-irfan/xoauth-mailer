@@ -42,9 +42,9 @@ $xoam_enabled = XOAM_Settings::get_one( 'debug_enabled' ) === '1';
 			<table class="xoam-log-table widefat">
 				<thead>
 					<tr>
-						<th style="width:160px;"><?php esc_html_e( 'Time', 'xoauth-mailer' ); ?></th>
-						<th style="width:70px;"><?php esc_html_e( 'Level', 'xoauth-mailer' ); ?></th>
-						<th><?php esc_html_e( 'Message', 'xoauth-mailer' ); ?></th>
+						<th scope="col" style="width:160px;"><?php esc_html_e( 'Time', 'xoauth-mailer' ); ?></th>
+						<th scope="col" style="width:70px;"><?php esc_html_e( 'Level', 'xoauth-mailer' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Message', 'xoauth-mailer' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>

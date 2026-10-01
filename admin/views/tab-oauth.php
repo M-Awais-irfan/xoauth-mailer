@@ -27,9 +27,9 @@ $xoam_redirect_uri = XOAM_OAuth::get_redirect_uri();
 			<p class="description">
 				<?php
 				printf(
-					/* translators: %s: token expiry date and time (UTC). */
+					/* translators: %s: token expiry date and time, in the site's timezone. */
 					esc_html__( 'Token expires: %s (auto-refreshes)', 'xoauth-mailer' ),
-					esc_html( gmdate( 'Y-m-d H:i:s', $xoam_token['expires_at'] ) )
+					esc_html( wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $xoam_token['expires_at'] ) )
 				);
 				?>
 			</p>
@@ -62,17 +62,17 @@ $xoam_redirect_uri = XOAM_OAuth::get_redirect_uri();
 			printf(
 				/* translators: %s: link to the Google Cloud Console. */
 				esc_html__( 'Go to %s > select your project.', 'xoauth-mailer' ),
-				'<a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a>'
+				'<a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">console.cloud.google.com</a>'
 			);
 			?>
 		</li>
 		<li><?php esc_html_e( 'Enable the Gmail API under APIs & Services > Library.', 'xoauth-mailer' ); ?></li>
+		<?php // External apps in Testing status get refresh tokens that Google expires after 7 days. ?>
+		<li><?php esc_html_e( 'Under Google Auth Platform > Audience, set the user type to Internal. Internal apps need no test users and stay connected.', 'xoauth-mailer' ); ?></li>
 		<li><?php esc_html_e( 'Go to Google Auth Platform > Clients > Create OAuth 2.0 Client ID.', 'xoauth-mailer' ); ?></li>
 		<li><?php esc_html_e( 'Application type: Web application.', 'xoauth-mailer' ); ?></li>
 		<li><?php esc_html_e( 'Under Authorized redirect URIs paste the URL from the blue box above.', 'xoauth-mailer' ); ?></li>
 		<li><?php esc_html_e( 'Copy Client ID and Client Secret into the Settings tab > Save.', 'xoauth-mailer' ); ?></li>
-		<?php // Must come before connecting: Google rejects non-test users while the app is in Testing mode. ?>
-		<li><?php esc_html_e( 'Under Audience > Add your email as a test user if app is in testing mode.', 'xoauth-mailer' ); ?></li>
 		<li><?php esc_html_e( 'Return here and click Connect Google Account below.', 'xoauth-mailer' ); ?></li>
 	</ol>
 </div>

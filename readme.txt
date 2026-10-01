@@ -67,10 +67,10 @@ These services are provided by Google: [Terms of Service](https://policies.googl
 **OAuth2 (Recommended):**
 
 1. Go to console.cloud.google.com > enable Gmail API
-2. Create an OAuth 2.0 Client ID (Web application type)
-3. Copy the Redirect URI from XOAuth Mailer > OAuth2 tab into Google Cloud > Authorized redirect URIs
-4. Paste Client ID and Secret into XOAuth Mailer > Settings > save
-5. Add your email as a test user in Google Cloud > Audience if in testing mode
+2. Under Google Auth Platform > Audience, set the user type to Internal
+3. Create an OAuth 2.0 Client ID (Web application type)
+4. Copy the Redirect URI from XOAuth Mailer > OAuth2 tab into Google Cloud > Authorized redirect URIs
+5. Paste Client ID and Secret into XOAuth Mailer > Settings > save
 6. Go to OAuth2 tab > click Connect Google Account
 
 == Frequently Asked Questions ==
@@ -82,7 +82,10 @@ No. Everything is self-contained. No Composer, no extra packages.
 Yes. Use the same Client ID and Client Secret on all sites. Add each site's Redirect URI to Google Cloud. Connect each site separately.
 
 = Why does the OAuth2 tab show "Not Connected" after approving? =
-Another plugin may be intercepting the callback. This plugin uses its own REST API endpoint (/wp-json/xoauth-mailer/v1/oauth-callback) to avoid that. If you upgraded from version 1.x, update the redirect URI in Google Cloud to the one shown in the OAuth2 tab, then reconnect.
+Another plugin may be intercepting the callback. This plugin uses its own REST API endpoint (/wp-json/xoauth-mailer/v1/oauth-callback) to avoid that.
+
+= Why does sending stop after about 7 days? =
+Your OAuth app is set to External with the Testing publishing status, and Google expires refresh tokens for those apps after 7 days. Set the user type to Internal under Google Auth Platform > Audience, then reconnect in the OAuth2 tab.
 
 = Will my settings be deleted if I deactivate the plugin? =
 No. Settings are only deleted when you delete the plugin. Deactivation preserves everything.
@@ -101,49 +104,4 @@ Single-site tested and supported. Multisite support is planned.
 == Changelog ==
 
 = 2.2.0 =
-* Changed: plugin renamed to "XOAuth Mailer for Google Workspace" (slug: xoauth-mailer); all code, options and hooks now use the "xoam" prefix
-* Changed: OAuth redirect URI is now /wp-json/xoauth-mailer/v1/oauth-callback
-* Added: settings, Google connection and debug log from earlier versions are migrated automatically
-* Changed: PHPMailer files are no longer loaded on every page request
-* Removed: the "None" encryption option, which never actually disabled TLS
-
-= 2.1.0 =
-* Security: OAuth2 access token is no longer written to the debug log
-* Security: saved App Password and Client Secret are no longer printed into the settings page source
-* Security: App Password and Client Secret can be defined in wp-config.php (XOAM_APP_PASSWORD, XOAM_CLIENT_SECRET)
-* Security: secret options are no longer autoloaded
-* Security: OAuth2 credential is no longer stored in a database transient during sending
-* Security: optional token revocation at Google when disconnecting
-* Security: hardened OAuth callback state handling
-* Privacy: the debug log no longer stores email content (message headers and body)
-* Fixed: From Name is now applied when From Email is left empty
-* Fixed: setup steps now add the test user before connecting (Google blocks non-test users in Testing mode)
-* Added: clear "saved" indicator under the App Password and Client Secret fields
-* Added: upgrade routine, so data changes apply on plugin update without reactivating
-* Changed: Auth Method options are shown one per line
-* Fixed: escaping, input unslashing and validation flagged by Plugin Check
-* Added: privacy policy suggested text
-* Added: all interface strings are now translatable
-* Changed: Connect button uses a neutral icon
-
-= 2.0.0 =
-* Complete rewrite with proper file structure and class architecture
-* OAuth2 callback moved to a REST API endpoint to avoid conflicts with other plugins
-* Separated into includes/, admin/, assets/ for WordPress directory standards
-* Added uninstall.php for clean data removal
-* Added admin.css and admin.js as proper enqueued assets
-* Added text domain for translation readiness
-
-= 1.0.0 =
-* Initial release
-
-== Upgrade Notice ==
-
-= 2.2.0 =
-Plugin renamed. Your settings and Google connection carry over automatically. Before reconnecting, add the new redirect URI shown in the OAuth2 tab to your Google Cloud OAuth client.
-
-= 2.1.0 =
-Security release. Clear the Debug Log after upgrading. The App Password and Client Secret fields now appear empty. Leave them blank to keep the saved values.
-
-= 2.0.0 =
-Major rewrite. After upgrading: go to Settings > Permalinks > Save to flush rewrite rules, then reconnect your Google account in the OAuth2 tab.
+* First release on WordPress.org.

@@ -4,9 +4,9 @@
 	<table class="widefat" style="margin-top:10px;">
 		<thead>
 			<tr>
-				<th><?php esc_html_e( 'Method', 'xoauth-mailer' ); ?></th>
-				<th><?php esc_html_e( 'Best For', 'xoauth-mailer' ); ?></th>
-				<th><?php esc_html_e( 'Requires', 'xoauth-mailer' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Method', 'xoauth-mailer' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Best For', 'xoauth-mailer' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Requires', 'xoauth-mailer' ); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -33,7 +33,7 @@
 			printf(
 				/* translators: %s: link to the Google Account security page. */
 				esc_html__( 'Go to %s.', 'xoauth-mailer' ),
-				'<a href="https://myaccount.google.com/security" target="_blank">myaccount.google.com/security</a>'
+				'<a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer">myaccount.google.com/security</a>'
 			);
 			?>
 		</li>
@@ -48,8 +48,8 @@
 	<table class="widefat">
 		<thead>
 			<tr>
-				<th><?php esc_html_e( 'Problem', 'xoauth-mailer' ); ?></th>
-				<th><?php esc_html_e( 'Fix', 'xoauth-mailer' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Problem', 'xoauth-mailer' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Fix', 'xoauth-mailer' ); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -68,6 +68,10 @@
 			<tr>
 				<td><?php esc_html_e( 'OAuth Error 400: redirect_uri_mismatch', 'xoauth-mailer' ); ?></td>
 				<td><?php esc_html_e( 'The Redirect URI in Google Cloud must exactly match the URL shown in the OAuth2 tab.', 'xoauth-mailer' ); ?></td>
+			</tr>
+			<tr>
+				<td><?php esc_html_e( 'Connection stops working after about 7 days', 'xoauth-mailer' ); ?></td>
+				<td><?php esc_html_e( 'Your OAuth app is External and in Testing status, so Google expires its refresh tokens after 7 days. Set the user type to Internal under Google Auth Platform > Audience, then reconnect.', 'xoauth-mailer' ); ?></td>
 			</tr>
 			<tr>
 				<td><?php esc_html_e( 'OAuth connects but status shows Not Connected', 'xoauth-mailer' ); ?></td>

@@ -7,7 +7,7 @@
 		<input type="hidden" name="action" value="xoam_send_test">
 		<table class="form-table">
 			<tr>
-				<th><label for="test_email_to"><?php esc_html_e( 'Send To', 'xoauth-mailer' ); ?></label></th>
+				<th scope="row"><label for="test_email_to"><?php esc_html_e( 'Send To', 'xoauth-mailer' ); ?></label></th>
 				<td>
 					<input type="email" id="test_email_to" name="test_email_to"
 					       value="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>"

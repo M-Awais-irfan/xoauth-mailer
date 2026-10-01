@@ -241,6 +241,14 @@ class XOAM_OAuth {
 			return $new_token;
 		}
 
+		// invalid_grant: the refresh token was revoked or has expired and will never
+		// work again. Drop it so the OAuth2 tab shows "Not Connected".
+		if ( 'invalid_grant' === ( $body['error'] ?? '' ) ) {
+			delete_option( XOAM_TOKEN_KEY );
+			XOAM_Logger::log( 'Google rejected the refresh token (revoked or expired). Reconnect in the OAuth2 tab.', 'ERROR' );
+			return [];
+		}
+
 		XOAM_Logger::log( 'Token refresh failed: ' . wp_json_encode( $body ), 'ERROR' );
 		return [];
 	}
@@ -279,9 +287,20 @@ class XOAM_OAuth {
 
 	// Status
 
+	/**
+	 * Whether the plugin can get a working access token.
+	 *
+	 * With a refresh token a new access token can always be requested.
+	 * Without one, the stored access token only works until it expires.
+	 */
 	public static function is_connected(): bool {
-		$token = get_option( XOAM_TOKEN_KEY, [] );
-		return ! empty( $token['access_token'] );
+		$token = self::get_token();
+
+		if ( ! empty( $token['refresh_token'] ) ) {
+			return true;
+		}
+
+		return ! empty( $token['access_token'] ) && time() < (int) ( $token['expires_at'] ?? 0 );
 	}
 
 	public static function get_token(): array {
