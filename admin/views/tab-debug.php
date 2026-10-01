@@ -1,7 +1,5 @@
 <?php
 defined( 'ABSPATH' ) || exit;
-// Prefixed: this file is included inside a method, but it reads like global
-// scope to code sniffers (and reviewers), so the variables follow the plugin prefix.
 $xoam_log     = XOAM_Logger::get_entries();
 $xoam_enabled = XOAM_Settings::get_one( 'debug_enabled' ) === '1';
 ?>
@@ -18,7 +16,7 @@ $xoam_enabled = XOAM_Settings::get_one( 'debug_enabled' ) === '1';
 	</h2>
 
 	<?php if ( ! $xoam_enabled ) : ?>
-		<p><?php esc_html_e( '⚠️ Enable debug logging in the Settings tab to capture SMTP activity.', 'xoauth-mailer' ); ?></p>
+		<p><?php esc_html_e( 'Enable debug logging in the Settings tab to capture SMTP activity.', 'xoauth-mailer' ); ?></p>
 	<?php endif; ?>
 
 	<?php if ( ! empty( $xoam_log ) ) : ?>

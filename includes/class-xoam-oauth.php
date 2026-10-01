@@ -3,9 +3,8 @@
  * OAuth2 flow management.
  *
  * Uses a WordPress REST API endpoint (/wp-json/xoauth-mailer/v1/oauth-callback)
- * as the redirect URI. This is completely isolated from wp-admin and cannot
- * be intercepted by other plugins (Constant Contact, etc.) that hook into
- * admin_init or admin_post to grab OAuth ?code= parameters.
+ * as the redirect URI, so plugins that look for an OAuth ?code= parameter
+ * on admin_init or admin_post don't pick up this callback.
  *
  * @package XOAuth_Mailer
  */
@@ -17,7 +16,7 @@ class XOAM_OAuth {
 	private const REST_NAMESPACE = 'xoauth-mailer/v1';
 	private const REST_ROUTE     = '/oauth-callback';
 
-	// ── Registration ──────────────────────────────────────────────────────────
+	// Registration
 
 	public static function register(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_route' ] );
@@ -28,12 +27,9 @@ class XOAM_OAuth {
 	 *
 	 * Redirect URI: https://yoursite.com/wp-json/xoauth-mailer/v1/oauth-callback
 	 *
-	 * Why REST API instead of admin_init / admin_post?
-	 * ─────────────────────────────────────────────────
-	 * Other OAuth plugins (Constant Contact, Jetpack, etc.) hook into
-	 * admin_init and admin_post and check for ?code= in the URL — they
-	 * can accidentally intercept our callback. The REST API namespace is
-	 * unique and completely separate; no other plugin can intercept it.
+	 * A REST route is used instead of admin_init / admin_post because some
+	 * OAuth plugins check every admin request for ?code= and can intercept
+	 * the callback. The REST namespace is unique to this plugin.
 	 */
 	public static function register_rest_route(): void {
 		register_rest_route(
@@ -61,17 +57,17 @@ class XOAM_OAuth {
 		);
 	}
 
-	// ── Redirect URI ──────────────────────────────────────────────────────────
+	// Redirect URI
 
 	/**
 	 * Get the OAuth2 redirect URI.
-	 * This is what you add to Google Cloud Console → Authorized redirect URIs.
+	 * This is what you add to Google Cloud Console > Authorized redirect URIs.
 	 */
 	public static function get_redirect_uri(): string {
 		return rest_url( self::REST_NAMESPACE . self::REST_ROUTE );
 	}
 
-	// ── Authorization URL ─────────────────────────────────────────────────────
+	// Authorization URL
 
 	/**
 	 * Build the Google OAuth2 authorization URL.
@@ -100,15 +96,14 @@ class XOAM_OAuth {
 		return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query( $params );
 	}
 
-	// ── Callback Handler ──────────────────────────────────────────────────────
+	// Callback Handler
 
 	/**
 	 * Handle the Google OAuth2 callback via REST API.
 	 *
-	 * Security is based entirely on the state transient — we do NOT require
-	 * an active WordPress session because REST API redirects from Google do
-	 * not reliably carry WordPress auth cookies, causing false "unauthorized"
-	 * errors even for legitimate admin users.
+	 * Security relies on the state transient, not on a WordPress session:
+	 * the redirect from Google carries no REST nonce, so WordPress treats
+	 * the request as logged out.
 	 *
 	 * The state transient is:
 	 *  - Cryptographically random (32 chars)
@@ -125,10 +120,10 @@ class XOAM_OAuth {
 		$code  = (string) $request->get_param( 'code' );
 		$state = (string) $request->get_param( 'state' );
 
-		// ── Validate state transient ───────────────────────────────────────
-		// This is our primary security check — replaces session/nonce.
+		// Validate state transient
+		// This is the main security check; it stands in for a nonce.
 		// Only accept the 32-char alphanumeric shape get_auth_url() generates
-		// before using the value in a transient name. (\z, not $ — in PCRE,
+		// before using the value in a transient name. \z is used instead of $ because, in PCRE,
 		// $ also matches before a trailing newline.)
 		$user_id = preg_match( '/^[A-Za-z0-9]{32}\z/', $state )
 			? (int) get_transient( 'xoam_oauth_state_' . $state )
@@ -136,13 +131,13 @@ class XOAM_OAuth {
 
 		if ( ! $user_id ) {
 			// WARN, not ERROR: this endpoint is public, so anyone can reach this
-			// branch — ERROR would let them flood the always-on log.
+			// branch. ERROR level would let them flood the always-on log.
 			XOAM_Logger::log( 'OAuth callback: state missing, expired or invalid.', 'WARN' );
 			wp_safe_redirect( $admin_url . '&xoam_notice=oauth_error' );
 			exit;
 		}
 
-		// Single-use — delete immediately
+		// Single use: delete immediately.
 		delete_transient( 'xoam_oauth_state_' . $state );
 
 		// The initiating admin may have lost the capability during the 10-minute window
@@ -161,7 +156,7 @@ class XOAM_OAuth {
 		XOAM_Logger::log( 'OAuth callback validated. Exchanging code for token.' );
 		XOAM_Logger::log( 'Initiated by user ID: ' . $user_id );
 
-		// ── Exchange code for token ────────────────────────────────────────
+		// Exchange code for token
 		$s        = XOAM_Settings::get();
 		$response = wp_remote_post( 'https://oauth2.googleapis.com/token', [
 			'timeout' => 15,
@@ -198,12 +193,12 @@ class XOAM_OAuth {
 		}
 
 		$error = ( $body['error'] ?? 'unknown' ) . ': ' . ( $body['error_description'] ?? '' );
-		XOAM_Logger::log( 'Token exchange failed — ' . $error, 'ERROR' );
+		XOAM_Logger::log( 'Token exchange failed: ' . $error, 'ERROR' );
 		wp_safe_redirect( $admin_url . '&xoam_notice=oauth_error' );
 		exit;
 	}
 
-	// ── Token Refresh ─────────────────────────────────────────────────────────
+	// Token Refresh
 
 	/**
 	 * Refresh an expired OAuth2 access token using the refresh token.
@@ -214,7 +209,7 @@ class XOAM_OAuth {
 	 */
 	public static function refresh_token( array $token, array $settings ): array {
 		if ( empty( $token['refresh_token'] ) ) {
-			XOAM_Logger::log( 'No refresh token available — cannot refresh.', 'ERROR' );
+			XOAM_Logger::log( 'No refresh token available, cannot refresh.', 'ERROR' );
 			return [];
 		}
 
@@ -250,14 +245,14 @@ class XOAM_OAuth {
 		return [];
 	}
 
-	// ── Disconnect ────────────────────────────────────────────────────────────
+	// Disconnect
 
 	/**
 	 * Delete the stored token, optionally revoking it at Google first.
 	 *
 	 * Deleting locally leaves the refresh token valid at Google. Revoking kills
 	 * the whole grant for this Client ID + account, which also disconnects any
-	 * other site sharing them — so it is opt-in.
+	 * other site sharing them, so it is opt-in.
 	 *
 	 * @param bool $revoke Also revoke the grant at Google.
 	 */
@@ -272,7 +267,7 @@ class XOAM_OAuth {
 			] );
 
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-				XOAM_Logger::log( 'Token revoke at Google failed — remove access manually at myaccount.google.com/permissions.', 'ERROR' );
+				XOAM_Logger::log( 'Token revoke at Google failed. Remove access manually at myaccount.google.com/permissions.', 'ERROR' );
 			} else {
 				XOAM_Logger::log( 'OAuth2 grant revoked at Google.' );
 			}
@@ -282,7 +277,7 @@ class XOAM_OAuth {
 		XOAM_Logger::log( 'OAuth2 token disconnected by admin.' );
 	}
 
-	// ── Status ────────────────────────────────────────────────────────────────
+	// Status
 
 	public static function is_connected(): bool {
 		$token = get_option( XOAM_TOKEN_KEY, [] );

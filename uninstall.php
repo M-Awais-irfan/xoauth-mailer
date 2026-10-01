@@ -3,9 +3,9 @@
  * Uninstall script.
  *
  * Runs when the plugin is deleted from the WordPress plugins screen.
- * Removes ALL plugin data from the database.
+ * Removes all plugin data from the database.
  *
- * Note: Deactivation does NOT delete data — only uninstall does.
+ * Deactivation keeps all data; only uninstall removes it.
  *
  * @package XOAuth_Mailer
  */

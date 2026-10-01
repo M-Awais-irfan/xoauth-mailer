@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       XOAuth Mailer – SMTP for Google Workspace
+ * Plugin Name:       XOAuth Mailer for Google Workspace
  * Plugin URI:        https://github.com/M-Awais-irfan/xoauth-mailer
  * Description:       Send WordPress email through Google Workspace using Google's XOAUTH2 SMTP mechanism (or an App Password), built on WordPress's bundled PHPMailer with no extra libraries.
  * Version:           2.2.0
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// Constants
 define( 'XOAM_VERSION',    '2.2.0' );
 define( 'XOAM_FILE',       __FILE__ );
 define( 'XOAM_DIR',        plugin_dir_path( __FILE__ ) );
@@ -26,7 +26,7 @@ define( 'XOAM_OPTION_KEY', 'xoam_settings' );
 define( 'XOAM_LOG_KEY',    'xoam_debug_log' );
 define( 'XOAM_TOKEN_KEY',  'xoam_oauth_token' );
 
-// ── Autoloader ────────────────────────────────────────────────────────────────
+// Autoloader
 spl_autoload_register( function ( string $class ): void {
 	$map = [
 		'XOAM_Core'     => 'includes/class-xoam-core.php',
@@ -46,9 +46,9 @@ spl_autoload_register( function ( string $class ): void {
 	}
 } );
 
-// ── Activation / Deactivation ─────────────────────────────────────────────────
+// Activation / Deactivation
 register_activation_hook( __FILE__, [ 'XOAM_Core', 'activate' ] );
 register_deactivation_hook( __FILE__, [ 'XOAM_Core', 'deactivate' ] );
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
+// Boot
 add_action( 'plugins_loaded', [ 'XOAM_Core', 'init' ] );

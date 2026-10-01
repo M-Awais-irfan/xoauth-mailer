@@ -38,7 +38,7 @@
 			?>
 		</li>
 		<li><?php esc_html_e( 'Enable 2-Step Verification.', 'xoauth-mailer' ); ?></li>
-		<li><?php esc_html_e( 'Search for App Passwords → Create new → name it "WordPress".', 'xoauth-mailer' ); ?></li>
+		<li><?php esc_html_e( 'Search for App Passwords > Create new > name it "WordPress".', 'xoauth-mailer' ); ?></li>
 		<li><?php esc_html_e( 'Copy the 16-character password into Settings tab.', 'xoauth-mailer' ); ?></li>
 	</ol>
 </div>
@@ -71,7 +71,7 @@
 			</tr>
 			<tr>
 				<td><?php esc_html_e( 'OAuth connects but status shows Not Connected', 'xoauth-mailer' ); ?></td>
-				<td><?php esc_html_e( 'Another plugin may be intercepting the callback. This plugin uses REST API endpoint which prevents all such conflicts.', 'xoauth-mailer' ); ?></td>
+				<td><?php esc_html_e( 'Another plugin may be intercepting the callback. This plugin uses its own REST API endpoint to prevent that.', 'xoauth-mailer' ); ?></td>
 			</tr>
 			<tr>
 				<td><?php esc_html_e( 'From email rejected', 'xoauth-mailer' ); ?></td>

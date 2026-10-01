@@ -101,7 +101,7 @@ class XOAM_Settings {
 		$clean['from_email']      = sanitize_email( $input['from_email'] ?? '' );
 		$clean['from_name']       = sanitize_text_field( $input['from_name'] ?? '' );
 		$clean['smtp_host']       = sanitize_text_field( $input['smtp_host'] ?? 'smtp.gmail.com' );
-		$clean['smtp_encryption'] = in_array( $input['smtp_encryption'] ?? '', [ 'tls', 'ssl', 'none' ], true )
+		$clean['smtp_encryption'] = in_array( $input['smtp_encryption'] ?? '', [ 'tls', 'ssl' ], true )
 			? $input['smtp_encryption']
 			: 'tls';
 		$clean['smtp_port']       = in_array( (string) ( $input['smtp_port'] ?? '' ), [ '587', '465', '25' ], true )

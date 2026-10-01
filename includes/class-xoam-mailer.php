@@ -20,7 +20,7 @@ class XOAM_Mailer {
 	/**
 	 * XOAUTH2 credential built by configure_oauth2() (priority 10) and consumed
 	 * by inject_xoauth2() (priority 20). Both run inside the same wp_mail() call,
-	 * so a static property is enough — the token never needs to touch the database.
+	 * so a static property is enough and the token never touches the database.
 	 *
 	 * @var string
 	 */
@@ -30,10 +30,10 @@ class XOAM_Mailer {
 	 * Register phpmailer_init hooks.
 	 */
 	public static function register(): void {
-		// Priority 10 — main SMTP configuration
+		// Priority 10: main SMTP configuration.
 		add_action( 'phpmailer_init', [ __CLASS__, 'configure' ], 10 );
 
-		// Priority 20 — inject XOAUTH2 SMTP subclass AFTER main config
+		// Priority 20: swap in the XOAUTH2 SMTP class after the main configuration.
 		add_action( 'phpmailer_init', [ __CLASS__, 'inject_xoauth2' ], 20 );
 	}
 
@@ -49,13 +49,13 @@ class XOAM_Mailer {
 		self::$xoauth2 = '';
 
 		if ( empty( $s['username'] ) ) {
-			XOAM_Logger::log( 'SMTP username is empty — skipping SMTP override.', 'WARN' );
+			XOAM_Logger::log( 'SMTP username is empty, skipping SMTP override.', 'WARN' );
 			return;
 		}
 
 		XOAM_Logger::log( 'Configuring PHPMailer for Google Workspace SMTP.' );
 
-		// ── Server settings ────────────────────────────────────────────────
+		// Server settings
 		$phpmailer->isSMTP();
 		$phpmailer->Host     = sanitize_text_field( $s['smtp_host'] );
 		$phpmailer->Port     = (int) $s['smtp_port'];
@@ -66,7 +66,7 @@ class XOAM_Mailer {
 			? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS
 			: PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
 
-		// ── Sender identity ────────────────────────────────────────────────
+		// Sender identity
 		if ( ! empty( $s['from_email'] ) ) {
 			$phpmailer->setFrom(
 				sanitize_email( $s['from_email'] ),
@@ -78,14 +78,14 @@ class XOAM_Mailer {
 			$phpmailer->FromName = sanitize_text_field( $s['from_name'] );
 		}
 
-		// ── Auth method ────────────────────────────────────────────────────
+		// Auth method
 		if ( $s['auth_method'] === 'oauth2' ) {
 			self::configure_oauth2( $phpmailer, $s );
 		} else {
 			self::configure_app_password( $phpmailer, $s );
 		}
 
-		// ── Debug output ───────────────────────────────────────────────────
+		// Debug output
 		if ( $s['debug_enabled'] === '1' ) {
 			$phpmailer->SMTPDebug  = 2;
 			// A new closure is created for every email, so its static state starts fresh each time.
@@ -95,14 +95,14 @@ class XOAM_Mailer {
 
 				$line = trim( $str );
 
-				// Message headers + body: don't store email content (privacy) — just count the lines.
+				// Message headers and body are not stored (privacy); only the line count is.
 				if ( $in_data ) {
 					if ( 'CLIENT -> SERVER: .' !== $line ) {
 						++$hidden;
 						return;
 					}
 					$in_data = false;
-					$line    = "CLIENT -> SERVER: [message content hidden — {$hidden} lines]";
+					$line    = "CLIENT -> SERVER: [message content hidden, {$hidden} lines]";
 					$hidden  = 0;
 				}
 
@@ -134,7 +134,7 @@ class XOAM_Mailer {
 		XOAM_Logger::log( 'Auth method: App Password.' );
 
 		if ( empty( $s['app_password'] ) ) {
-			XOAM_Logger::log( 'App password is empty — email may fail.', 'ERROR' );
+			XOAM_Logger::log( 'App password is empty, email may fail.', 'ERROR' );
 			return;
 		}
 
@@ -161,7 +161,7 @@ class XOAM_Mailer {
 
 		// Refresh if expired
 		if ( ! empty( $token['expires_at'] ) && time() > (int) $token['expires_at'] ) {
-			XOAM_Logger::log( 'OAuth2 token expired — refreshing.' );
+			XOAM_Logger::log( 'OAuth2 token expired, refreshing.' );
 			$token = XOAM_OAuth::refresh_token( $token, $s );
 		}
 
@@ -172,7 +172,7 @@ class XOAM_Mailer {
 
 		// Build XOAUTH2 base64 string
 		// Format: base64( "user=<email>\x01auth=Bearer <token>\x01\x01" )
-		// Google's XOAUTH2 SASL mechanism requires base64 — this is encoding, not obfuscation.
+		// Google's XOAUTH2 SASL mechanism requires base64. This is encoding, not obfuscation.
 		$xoauth2 = base64_encode( // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 			'user=' . sanitize_email( $s['username'] )
 			. "\x01auth=Bearer " . $token['access_token']
@@ -181,7 +181,7 @@ class XOAM_Mailer {
 
 		XOAM_Logger::log( 'XOAUTH2 credential built. Token length: ' . strlen( $token['access_token'] ) );
 
-		// Hand over to inject_xoauth2() — same request, so no database needed
+		// Picked up by inject_xoauth2() later in the same request.
 		self::$xoauth2 = $xoauth2;
 
 		// Temporarily disable SMTPAuth so PHPMailer won't run its own auth
@@ -191,7 +191,7 @@ class XOAM_Mailer {
 
 	/**
 	 * Inject our XOAUTH2-capable SMTP subclass into PHPMailer.
-	 * Runs at priority 20 — after configure() at priority 10.
+	 * Runs at priority 20, after configure() at priority 10.
 	 */
 	public static function inject_xoauth2( PHPMailer\PHPMailer\PHPMailer $phpmailer ): void {
 		$s = XOAM_Settings::get();
@@ -204,11 +204,12 @@ class XOAM_Mailer {
 		self::$xoauth2 = ''; // Single use
 
 		if ( empty( $xoauth2 ) ) {
-			XOAM_Logger::log( 'XOAUTH2 credential missing — cannot inject custom SMTP.', 'ERROR' );
+			XOAM_Logger::log( 'XOAUTH2 credential missing, cannot inject custom SMTP.', 'ERROR' );
 			return;
 		}
 
-		if ( ! class_exists( 'XOAM_SMTP' ) ) {
+		// The parent class must exist before XOAM_SMTP is autoloaded, or PHP fails to declare it.
+		if ( ! class_exists( 'PHPMailer\PHPMailer\SMTP' ) || ! class_exists( 'XOAM_SMTP' ) ) {
 			XOAM_Logger::log( 'XOAM_SMTP class not found.', 'ERROR' );
 			return;
 		}

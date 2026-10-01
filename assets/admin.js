@@ -1,8 +1,8 @@
-/* XOAuth Mailer – SMTP for Google Workspace — Admin JS */
+/* XOAuth Mailer admin scripts */
 (function () {
 	'use strict';
 
-	// ── Auth method toggle ──────────────────────────────────────────────────
+	// Auth method toggle
 	function toggleAuthFields() {
 		var radios = document.querySelectorAll( 'input[name$="[auth_method]"]' );
 		if ( ! radios.length ) return;
@@ -26,7 +26,7 @@
 	} );
 	toggleAuthFields();
 
-	// ── Confirm before destructive actions ──────────────────────────────────
+	// Confirm before destructive actions
 	// Text comes from a data-confirm attribute (escaped with esc_attr in PHP),
 	// so translations with quotes can't break the script.
 	document.querySelectorAll( '[data-confirm]' ).forEach( function ( btn ) {
@@ -37,7 +37,7 @@
 		} );
 	} );
 
-	// ── Copy to clipboard ───────────────────────────────────────────────────
+	// Copy to clipboard
 	var __ = wp.i18n.__; // Loaded via the 'wp-i18n' script dependency
 
 	document.querySelectorAll( '[data-copy]' ).forEach( function ( btn ) {

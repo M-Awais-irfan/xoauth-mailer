@@ -3,9 +3,9 @@
  * XOAUTH2-capable PHPMailer SMTP subclass.
  *
  * Overrides authenticate() to send AUTH XOAUTH2 <base64token>
- * directly to Google's SMTP server — no external OAuth library needed.
+ * directly to Google's SMTP server, so no external OAuth library is needed.
  *
- * Signature MUST match the parent PHPMailer\PHPMailer\SMTP::authenticate()
+ * The signature must match the parent PHPMailer\PHPMailer\SMTP::authenticate()
  * exactly (no type hints) to avoid PHP fatal declaration errors.
  *
  * @package XOAuth_Mailer
@@ -13,8 +13,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// PHPMailer\PHPMailer\SMTP must be loaded before this file is included.
-// XOAM_Core::load_dependencies() handles that.
+// Loaded on demand by the autoloader from XOAM_Mailer::inject_xoauth2(), which runs
+// during wp_mail() after WordPress has loaded PHPMailer\PHPMailer\SMTP.
 
 class XOAM_SMTP extends PHPMailer\PHPMailer\SMTP {
 
@@ -31,12 +31,12 @@ class XOAM_SMTP extends PHPMailer\PHPMailer\SMTP {
 	/**
 	 * Override authenticate() to use AUTH XOAUTH2 when token is present.
 	 *
-	 * NO type hints — must exactly match parent method signature.
+	 * No type hints: the signature must match the parent method exactly.
 	 *
 	 * @param string      $username  SMTP username (email address).
 	 * @param string      $password  SMTP password (unused for XOAUTH2).
 	 * @param string|null $authtype  Auth type (overridden to XOAUTH2).
-	 * @param mixed       $OAuth     OAuth object (unused — no external lib).
+	 * @param mixed       $OAuth     OAuth object (unused, no external library).
 	 * @return bool True on success.
 	 */
 	public function authenticate( $username, $password, $authtype = null, $OAuth = null ) {
@@ -47,8 +47,8 @@ class XOAM_SMTP extends PHPMailer\PHPMailer\SMTP {
 			return $this->sendCommand( 'AUTH', 'AUTH XOAUTH2 ' . $this->xoauth2_token, [ 235 ] );
 		}
 
-		// No XOAUTH2 token — fall back to standard PHPMailer auth (LOGIN/PLAIN)
-		XOAM_Logger::log( 'No XOAUTH2 token — falling back to standard auth.' );
+		// No XOAUTH2 token: fall back to standard PHPMailer auth (LOGIN/PLAIN).
+		XOAM_Logger::log( 'No XOAUTH2 token, falling back to standard auth.' );
 		return parent::authenticate( $username, $password, $authtype, $OAuth );
 	}
 }

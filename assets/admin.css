@@ -1,4 +1,4 @@
-/* XOAuth Mailer – SMTP for Google Workspace — Admin Styles */
+/* XOAuth Mailer admin styles */
 
 .xoam-wrap { max-width: 860px; }
 
@@ -55,5 +55,5 @@
 .xoam-log-level-DEBUG { color: #7f8c8d; }
 .xoam-log-level-INFO  { color: #2980b9; }
 
-/* Connect button — styled by core's .button-primary; this only aligns the icon */
+/* Connect button: core's .button-primary does the styling, this only aligns the icon */
 .xoam-connect-btn { display: inline-flex; align-items: center; gap: 6px; }

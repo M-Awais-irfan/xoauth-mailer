@@ -24,11 +24,11 @@ class XOAM_Admin {
 		add_action( 'admin_post_xoam_disconnect_oauth',[ __CLASS__, 'handle_disconnect_oauth' ] );
 	}
 
-	// ── Menu ──────────────────────────────────────────────────────────────────
+	// Menu
 
 	public static function register_menu(): void {
 		add_menu_page(
-			__( 'XOAuth Mailer – SMTP for Google Workspace', 'xoauth-mailer' ),
+			__( 'XOAuth Mailer for Google Workspace', 'xoauth-mailer' ),
 			__( 'XOAuth Mailer', 'xoauth-mailer' ),
 			'manage_options',
 			'xoauth-mailer',
@@ -38,7 +38,7 @@ class XOAM_Admin {
 		);
 	}
 
-	// ── Settings ──────────────────────────────────────────────────────────────
+	// Settings
 
 	public static function register_settings(): void {
 		register_setting(
@@ -48,10 +48,10 @@ class XOAM_Admin {
 		);
 	}
 
-	// ── Privacy ───────────────────────────────────────────────────────────────
+	// Privacy
 
 	/**
-	 * Suggest privacy policy text under Settings → Privacy → Policy Guide,
+	 * Suggest privacy policy text under Settings > Privacy > Policy Guide,
 	 * because the debug log stores email addresses.
 	 */
 	public static function add_privacy_policy_content(): void {
@@ -62,12 +62,12 @@ class XOAM_Admin {
 		$content = __( 'This site sends email through Google Workspace SMTP servers. When debug logging is enabled, the SMTP conversation is stored in the site database; it can include sender and recipient email addresses, but not message content. The most recent 100 entries are kept until an administrator clears the log or the plugin is deleted.', 'xoauth-mailer' );
 
 		wp_add_privacy_policy_content(
-			__( 'XOAuth Mailer – SMTP for Google Workspace', 'xoauth-mailer' ),
+			__( 'XOAuth Mailer for Google Workspace', 'xoauth-mailer' ),
 			wp_kses_post( wpautop( $content, false ) )
 		);
 	}
 
-	// ── Assets ────────────────────────────────────────────────────────────────
+	// Assets
 
 	public static function enqueue_assets( string $hook ): void {
 		if ( strpos( $hook, 'xoauth-mailer' ) === false ) {
@@ -90,7 +90,7 @@ class XOAM_Admin {
 		wp_set_script_translations( 'xoam-admin', 'xoauth-mailer' );
 	}
 
-	// ── Page Renderer ─────────────────────────────────────────────────────────
+	// Page Renderer
 
 	public static function render_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -100,13 +100,13 @@ class XOAM_Admin {
 		$s = XOAM_Settings::get();
 
 		$notices = [
-			'oauth_success'      => [ 'success', __( '✅ Google account connected successfully!', 'xoauth-mailer' ) ],
-			'oauth_error'        => [ 'error',   __( '❌ OAuth2 connection failed. Check your Client ID/Secret and try again.', 'xoauth-mailer' ) ],
-			'oauth_disconnected' => [ 'warning', __( '⚠️ OAuth2 disconnected.', 'xoauth-mailer' ) ],
-			'test_success'       => [ 'success', __( '✅ Test email sent successfully!', 'xoauth-mailer' ) ],
-			'test_fail'          => [ 'error',   __( '❌ Test email failed. Check your settings and debug log.', 'xoauth-mailer' ) ],
-			'test_invalid'       => [ 'error',   __( '❌ Please enter a valid email address.', 'xoauth-mailer' ) ],
-			'log_cleared'        => [ 'success', __( '✅ Debug log cleared.', 'xoauth-mailer' ) ],
+			'oauth_success'      => [ 'success', __( 'Google account connected successfully.', 'xoauth-mailer' ) ],
+			'oauth_error'        => [ 'error',   __( 'OAuth2 connection failed. Check your Client ID and Secret, then try again.', 'xoauth-mailer' ) ],
+			'oauth_disconnected' => [ 'warning', __( 'OAuth2 disconnected.', 'xoauth-mailer' ) ],
+			'test_success'       => [ 'success', __( 'Test email sent successfully.', 'xoauth-mailer' ) ],
+			'test_fail'          => [ 'error',   __( 'Test email failed. Check your settings and the debug log.', 'xoauth-mailer' ) ],
+			'test_invalid'       => [ 'error',   __( 'Please enter a valid email address.', 'xoauth-mailer' ) ],
+			'log_cleared'        => [ 'success', __( 'Debug log cleared.', 'xoauth-mailer' ) ],
 		];
 
 		$tabs = [
@@ -117,7 +117,7 @@ class XOAM_Admin {
 			'help'     => __( 'Help', 'xoauth-mailer' ),
 		];
 
-		// Read-only GET params that only choose what to display — no state change,
+		// Read-only GET params that only choose what to display (no state change),
 		// so no nonce is needed. Both are validated against an allowlist below.
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$tab    = sanitize_key( wp_unslash( $_GET['tab'] ?? 'settings' ) );
@@ -131,7 +131,7 @@ class XOAM_Admin {
 		<div class="wrap xoam-wrap">
 			<h1>
 				<span class="dashicons dashicons-email-alt" style="font-size:28px;color:#4285F4;vertical-align:middle;"></span>
-				<?php esc_html_e( 'XOAuth Mailer – SMTP for Google Workspace', 'xoauth-mailer' ); ?>
+				<?php esc_html_e( 'XOAuth Mailer for Google Workspace', 'xoauth-mailer' ); ?>
 				<span class="xoam-version">v<?php echo esc_html( XOAM_VERSION ); ?></span>
 			</h1>
 
@@ -156,7 +156,7 @@ class XOAM_Admin {
 		<?php
 	}
 
-	// ── Action Handlers ───────────────────────────────────────────────────────
+	// Action Handlers
 
 	public static function handle_test_email(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -164,12 +164,12 @@ class XOAM_Admin {
 		}
 		check_admin_referer( 'xoam_test_email' );
 
-		// PHP/WordPress add slashes to $_POST — unslash first, then sanitize
+		// Unslash first, then sanitize.
 		$to = isset( $_POST['test_email_to'] )
 			? sanitize_email( wp_unslash( $_POST['test_email_to'] ) )
 			: get_option( 'admin_email' );
 
-		// sanitize_email() returns '' for garbage — validate before sending
+		// sanitize_email() returns an empty string for invalid input, so validate it.
 		if ( ! is_email( $to ) ) {
 			wp_safe_redirect( admin_url( 'admin.php?page=xoauth-mailer&tab=test&xoam_notice=test_invalid' ) );
 			exit;
@@ -177,24 +177,24 @@ class XOAM_Admin {
 
 		$subject = sprintf(
 			/* translators: %s: date and time the test email was sent. */
-			__( 'XOAuth Mailer Test — %s', 'xoauth-mailer' ),
+			__( 'XOAuth Mailer test email: %s', 'xoauth-mailer' ),
 			current_time( 'Y-m-d H:i:s' )
 		);
 
-		// One translatable string per line — translators shouldn't have to handle "\n"
+		// One translatable string per line, so translators never handle line breaks.
 		$message = implode(
 			"\n",
 			[
 				__( 'Test email from WordPress via Google Workspace SMTP.', 'xoauth-mailer' ),
 				'',
 				/* translators: %s: plugin name. */
-				sprintf( __( 'Plugin: %s', 'xoauth-mailer' ), 'XOAuth Mailer – SMTP for Google Workspace' ),
+				sprintf( __( 'Plugin: %s', 'xoauth-mailer' ), 'XOAuth Mailer for Google Workspace' ),
 				/* translators: %s: site URL. */
 				sprintf( __( 'Site: %s', 'xoauth-mailer' ), get_bloginfo( 'url' ) ),
 			]
 		);
 
-		// Don't write the recipient address to the log — it's personal data
+		// The recipient address is personal data, so it is not logged.
 		XOAM_Logger::log( 'Sending test email.' );
 
 		$result = wp_mail( $to, $subject, $message );

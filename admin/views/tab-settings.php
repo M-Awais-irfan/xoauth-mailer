@@ -40,9 +40,9 @@
 				<th><label for="smtp_port"><?php esc_html_e( 'SMTP Port', 'xoauth-mailer' ); ?></label></th>
 				<td>
 					<select id="smtp_port" name="<?php echo esc_attr( XOAM_OPTION_KEY ); ?>[smtp_port]">
-						<option value="587" <?php selected( $s['smtp_port'], '587' ); ?>><?php esc_html_e( '587 — TLS (Recommended)', 'xoauth-mailer' ); ?></option>
-						<option value="465" <?php selected( $s['smtp_port'], '465' ); ?>><?php esc_html_e( '465 — SSL', 'xoauth-mailer' ); ?></option>
-						<option value="25"  <?php selected( $s['smtp_port'], '25' ); ?>><?php esc_html_e( '25 — None', 'xoauth-mailer' ); ?></option>
+						<option value="587" <?php selected( $s['smtp_port'], '587' ); ?>><?php esc_html_e( '587 (TLS, recommended)', 'xoauth-mailer' ); ?></option>
+						<option value="465" <?php selected( $s['smtp_port'], '465' ); ?>><?php esc_html_e( '465 (SSL)', 'xoauth-mailer' ); ?></option>
+						<option value="25"  <?php selected( $s['smtp_port'], '25' ); ?>><?php esc_html_e( '25 (TLS)', 'xoauth-mailer' ); ?></option>
 					</select>
 				</td>
 			</tr>
@@ -50,9 +50,8 @@
 				<th><label for="smtp_encryption"><?php esc_html_e( 'Encryption', 'xoauth-mailer' ); ?></label></th>
 				<td>
 					<select id="smtp_encryption" name="<?php echo esc_attr( XOAM_OPTION_KEY ); ?>[smtp_encryption]">
-						<option value="tls"  <?php selected( $s['smtp_encryption'], 'tls' ); ?>><?php esc_html_e( 'TLS (STARTTLS)', 'xoauth-mailer' ); ?></option>
-						<option value="ssl"  <?php selected( $s['smtp_encryption'], 'ssl' ); ?>><?php esc_html_e( 'SSL', 'xoauth-mailer' ); ?></option>
-						<option value="none" <?php selected( $s['smtp_encryption'], 'none' ); ?>><?php esc_html_e( 'None', 'xoauth-mailer' ); ?></option>
+						<option value="tls" <?php selected( $s['smtp_encryption'], 'tls' ); ?>><?php esc_html_e( 'TLS (STARTTLS)', 'xoauth-mailer' ); ?></option>
+						<option value="ssl" <?php selected( $s['smtp_encryption'], 'ssl' ); ?>><?php esc_html_e( 'SSL', 'xoauth-mailer' ); ?></option>
 					</select>
 				</td>
 			</tr>
@@ -72,14 +71,14 @@
 							<input type="radio" name="<?php echo esc_attr( XOAM_OPTION_KEY ); ?>[auth_method]"
 							       value="app_password" <?php checked( $s['auth_method'], 'app_password' ); ?>>
 							<?php esc_html_e( 'App Password', 'xoauth-mailer' ); ?>
-							<span class="description"><?php esc_html_e( '(Easier — enable 2FA then generate an App Password)', 'xoauth-mailer' ); ?></span>
+							<span class="description"><?php esc_html_e( '(easier: turn on 2-Step Verification, then create an App Password)', 'xoauth-mailer' ); ?></span>
 						</label>
 						<br>
 						<label>
 							<input type="radio" name="<?php echo esc_attr( XOAM_OPTION_KEY ); ?>[auth_method]"
 							       value="oauth2" <?php checked( $s['auth_method'], 'oauth2' ); ?>>
 							<?php esc_html_e( 'OAuth2', 'xoauth-mailer' ); ?>
-							<span class="description"><?php esc_html_e( '(Recommended — your Google password is never stored)', 'xoauth-mailer' ); ?></span>
+							<span class="description"><?php esc_html_e( '(recommended: your Google password is never stored)', 'xoauth-mailer' ); ?></span>
 						</label>
 					</fieldset>
 				</td>
@@ -98,7 +97,7 @@
 					<?php if ( XOAM_Settings::is_constant( 'app_password' ) ) : ?>
 						<p><em><?php esc_html_e( 'Defined in wp-config.php.', 'xoauth-mailer' ); ?></em></p>
 					<?php else : ?>
-						<?php // Never print the saved secret — leave blank to keep it. ?>
+						<?php // The saved secret is never printed; a blank field keeps it. ?>
 						<input type="password" id="app_password" name="<?php echo esc_attr( XOAM_OPTION_KEY ); ?>[app_password]"
 						       value="" class="regular-text" autocomplete="new-password">
 						<?php if ( ! empty( $s['app_password'] ) ) : ?>
@@ -133,7 +132,7 @@
 					<?php if ( XOAM_Settings::is_constant( 'oauth_client_secret' ) ) : ?>
 						<p><em><?php esc_html_e( 'Defined in wp-config.php.', 'xoauth-mailer' ); ?></em></p>
 					<?php else : ?>
-						<?php // Never print the saved secret — leave blank to keep it. ?>
+						<?php // The saved secret is never printed; a blank field keeps it. ?>
 						<input type="password" id="oauth_client_secret" name="<?php echo esc_attr( XOAM_OPTION_KEY ); ?>[oauth_client_secret]"
 						       value="" class="large-text" autocomplete="new-password">
 						<?php if ( ! empty( $s['oauth_client_secret'] ) ) : ?>
