@@ -47,8 +47,6 @@ class XOAM_Core {
 	 * One-time data tasks for the current version. Safe to run more than once.
 	 */
 	private static function upgrade(): void {
-		self::migrate_legacy_options();
-
 		// Secrets live in these options. Keep them out of the autoloaded set so
 		// they're only read when needed. add_option() is a no-op if it exists.
 		add_option( XOAM_OPTION_KEY, [], '', false );
@@ -63,33 +61,6 @@ class XOAM_Core {
 		XOAM_Logger::log( 'Upgrade tasks completed for version ' . XOAM_VERSION . '.' );
 	}
 
-	/**
-	 * Move data saved by versions up to 2.1.x, which used a "dih" prefix,
-	 * to the current option names, so existing sites keep their settings
-	 * and Google connection after the rename.
-	 */
-	private static function migrate_legacy_options(): void {
-		$map = [
-			'dih_google_smtp_settings'    => XOAM_OPTION_KEY,
-			'dih_google_smtp_oauth_token' => XOAM_TOKEN_KEY,
-			'dih_google_smtp_debug_log'   => XOAM_LOG_KEY,
-		];
-
-		foreach ( $map as $old => $new ) {
-			$value = get_option( $old, null );
-			if ( null === $value ) {
-				continue;
-			}
-			// Never overwrite data already saved under the new name.
-			if ( false === get_option( $new ) ) {
-				add_option( $new, $value, '', false );
-			}
-			delete_option( $old );
-		}
-
-		delete_option( 'dih_smtp_activated_at' );
-		delete_option( 'dih_smtp_db_version' );
-	}
 
 	private function register_hooks(): void {
 		// Mailer: configures PHPMailer for every wp_mail() call
