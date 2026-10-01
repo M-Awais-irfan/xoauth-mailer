@@ -2,19 +2,19 @@
 /**
  * OAuth2 flow management.
  *
- * Uses a WordPress REST API endpoint (/wp-json/dih-smtp/v1/oauth-callback)
+ * Uses a WordPress REST API endpoint (/wp-json/xoauth-mailer/v1/oauth-callback)
  * as the redirect URI. This is completely isolated from wp-admin and cannot
  * be intercepted by other plugins (Constant Contact, etc.) that hook into
  * admin_init or admin_post to grab OAuth ?code= parameters.
  *
- * @package DIH_Google_SMTP
+ * @package XOAuth_Mailer
  */
 
 defined( 'ABSPATH' ) || exit;
 
-class DIH_SMTP_OAuth {
+class XOAM_OAuth {
 
-	private const REST_NAMESPACE = 'dih-smtp/v1';
+	private const REST_NAMESPACE = 'xoauth-mailer/v1';
 	private const REST_ROUTE     = '/oauth-callback';
 
 	// ── Registration ──────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ class DIH_SMTP_OAuth {
 	/**
 	 * Register REST API callback endpoint.
 	 *
-	 * Redirect URI: https://yoursite.com/wp-json/dih-smtp/v1/oauth-callback
+	 * Redirect URI: https://yoursite.com/wp-json/xoauth-mailer/v1/oauth-callback
 	 *
 	 * Why REST API instead of admin_init / admin_post?
 	 * ─────────────────────────────────────────────────
@@ -79,13 +79,13 @@ class DIH_SMTP_OAuth {
 	 * so the REST callback can verify the flow without an active session.
 	 */
 	public static function get_auth_url(): string {
-		$s = DIH_SMTP_Settings::get();
+		$s = XOAM_Settings::get();
 
 		$state = wp_generate_password( 32, false );
 
 		// One transient per flow, keyed by the state itself, so two admins
 		// (or two browser tabs) never overwrite each other's pending flow.
-		set_transient( 'dih_smtp_oauth_state_' . $state, get_current_user_id(), 10 * MINUTE_IN_SECONDS );
+		set_transient( 'xoam_oauth_state_' . $state, get_current_user_id(), 10 * MINUTE_IN_SECONDS );
 
 		$params = [
 			'client_id'     => $s['oauth_client_id'],
@@ -119,7 +119,7 @@ class DIH_SMTP_OAuth {
 	 * @param WP_REST_Request $request REST request object.
 	 */
 	public static function handle_callback( WP_REST_Request $request ): void {
-		$admin_url = admin_url( 'admin.php?page=dih-google-smtp&tab=oauth' );
+		$admin_url = admin_url( 'admin.php?page=xoauth-mailer&tab=oauth' );
 
 		// Already sanitized by the route's 'args' schema
 		$code  = (string) $request->get_param( 'code' );
@@ -131,38 +131,38 @@ class DIH_SMTP_OAuth {
 		// before using the value in a transient name. (\z, not $ — in PCRE,
 		// $ also matches before a trailing newline.)
 		$user_id = preg_match( '/^[A-Za-z0-9]{32}\z/', $state )
-			? (int) get_transient( 'dih_smtp_oauth_state_' . $state )
+			? (int) get_transient( 'xoam_oauth_state_' . $state )
 			: 0;
 
 		if ( ! $user_id ) {
 			// WARN, not ERROR: this endpoint is public, so anyone can reach this
 			// branch — ERROR would let them flood the always-on log.
-			DIH_SMTP_Logger::log( 'OAuth callback: state missing, expired or invalid.', 'WARN' );
-			wp_safe_redirect( $admin_url . '&dih_smtp_notice=oauth_error' );
+			XOAM_Logger::log( 'OAuth callback: state missing, expired or invalid.', 'WARN' );
+			wp_safe_redirect( $admin_url . '&xoam_notice=oauth_error' );
 			exit;
 		}
 
 		// Single-use — delete immediately
-		delete_transient( 'dih_smtp_oauth_state_' . $state );
+		delete_transient( 'xoam_oauth_state_' . $state );
 
 		// The initiating admin may have lost the capability during the 10-minute window
 		if ( ! user_can( $user_id, 'manage_options' ) ) {
-			DIH_SMTP_Logger::log( 'OAuth callback: initiating user no longer has manage_options.', 'ERROR' );
-			wp_safe_redirect( $admin_url . '&dih_smtp_notice=oauth_error' );
+			XOAM_Logger::log( 'OAuth callback: initiating user no longer has manage_options.', 'ERROR' );
+			wp_safe_redirect( $admin_url . '&xoam_notice=oauth_error' );
 			exit;
 		}
 
 		if ( empty( $code ) ) {
-			DIH_SMTP_Logger::log( 'OAuth callback: no authorization code received.', 'ERROR' );
-			wp_safe_redirect( $admin_url . '&dih_smtp_notice=oauth_error' );
+			XOAM_Logger::log( 'OAuth callback: no authorization code received.', 'ERROR' );
+			wp_safe_redirect( $admin_url . '&xoam_notice=oauth_error' );
 			exit;
 		}
 
-		DIH_SMTP_Logger::log( 'OAuth callback validated. Exchanging code for token.' );
-		DIH_SMTP_Logger::log( 'Initiated by user ID: ' . $user_id );
+		XOAM_Logger::log( 'OAuth callback validated. Exchanging code for token.' );
+		XOAM_Logger::log( 'Initiated by user ID: ' . $user_id );
 
 		// ── Exchange code for token ────────────────────────────────────────
-		$s        = DIH_SMTP_Settings::get();
+		$s        = XOAM_Settings::get();
 		$response = wp_remote_post( 'https://oauth2.googleapis.com/token', [
 			'timeout' => 15,
 			'body'    => [
@@ -175,15 +175,15 @@ class DIH_SMTP_OAuth {
 		] );
 
 		if ( is_wp_error( $response ) ) {
-			DIH_SMTP_Logger::log( 'Token exchange WP error: ' . $response->get_error_message(), 'ERROR' );
-			wp_safe_redirect( $admin_url . '&dih_smtp_notice=oauth_error' );
+			XOAM_Logger::log( 'Token exchange WP error: ' . $response->get_error_message(), 'ERROR' );
+			wp_safe_redirect( $admin_url . '&xoam_notice=oauth_error' );
 			exit;
 		}
 
 		$http_code = wp_remote_retrieve_response_code( $response );
 		$body      = json_decode( wp_remote_retrieve_body( $response ), true );
 
-		DIH_SMTP_Logger::log( 'Token exchange HTTP status: ' . $http_code );
+		XOAM_Logger::log( 'Token exchange HTTP status: ' . $http_code );
 
 		if ( ! empty( $body['access_token'] ) ) {
 			$token = [
@@ -191,15 +191,15 @@ class DIH_SMTP_OAuth {
 				'refresh_token' => $body['refresh_token'] ?? '',
 				'expires_at'    => time() + (int) ( $body['expires_in'] ?? 3600 ),
 			];
-			update_option( DIH_SMTP_TOKEN_KEY, $token, false ); // false = don't autoload
-			DIH_SMTP_Logger::log( 'OAuth2 token stored. Has refresh_token: ' . ( ! empty( $token['refresh_token'] ) ? 'YES' : 'NO' ) );
-			wp_safe_redirect( $admin_url . '&dih_smtp_notice=oauth_success' );
+			update_option( XOAM_TOKEN_KEY, $token, false ); // false = don't autoload
+			XOAM_Logger::log( 'OAuth2 token stored. Has refresh_token: ' . ( ! empty( $token['refresh_token'] ) ? 'YES' : 'NO' ) );
+			wp_safe_redirect( $admin_url . '&xoam_notice=oauth_success' );
 			exit;
 		}
 
 		$error = ( $body['error'] ?? 'unknown' ) . ': ' . ( $body['error_description'] ?? '' );
-		DIH_SMTP_Logger::log( 'Token exchange failed — ' . $error, 'ERROR' );
-		wp_safe_redirect( $admin_url . '&dih_smtp_notice=oauth_error' );
+		XOAM_Logger::log( 'Token exchange failed — ' . $error, 'ERROR' );
+		wp_safe_redirect( $admin_url . '&xoam_notice=oauth_error' );
 		exit;
 	}
 
@@ -214,7 +214,7 @@ class DIH_SMTP_OAuth {
 	 */
 	public static function refresh_token( array $token, array $settings ): array {
 		if ( empty( $token['refresh_token'] ) ) {
-			DIH_SMTP_Logger::log( 'No refresh token available — cannot refresh.', 'ERROR' );
+			XOAM_Logger::log( 'No refresh token available — cannot refresh.', 'ERROR' );
 			return [];
 		}
 
@@ -229,7 +229,7 @@ class DIH_SMTP_OAuth {
 		] );
 
 		if ( is_wp_error( $response ) ) {
-			DIH_SMTP_Logger::log( 'Token refresh error: ' . $response->get_error_message(), 'ERROR' );
+			XOAM_Logger::log( 'Token refresh error: ' . $response->get_error_message(), 'ERROR' );
 			return [];
 		}
 
@@ -241,12 +241,12 @@ class DIH_SMTP_OAuth {
 				'refresh_token' => $token['refresh_token'],
 				'expires_at'    => time() + (int) ( $body['expires_in'] ?? 3600 ),
 			];
-			update_option( DIH_SMTP_TOKEN_KEY, $new_token, false ); // false = don't autoload
-			DIH_SMTP_Logger::log( 'Token refreshed successfully.' );
+			update_option( XOAM_TOKEN_KEY, $new_token, false ); // false = don't autoload
+			XOAM_Logger::log( 'Token refreshed successfully.' );
 			return $new_token;
 		}
 
-		DIH_SMTP_Logger::log( 'Token refresh failed: ' . wp_json_encode( $body ), 'ERROR' );
+		XOAM_Logger::log( 'Token refresh failed: ' . wp_json_encode( $body ), 'ERROR' );
 		return [];
 	}
 
@@ -272,24 +272,24 @@ class DIH_SMTP_OAuth {
 			] );
 
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-				DIH_SMTP_Logger::log( 'Token revoke at Google failed — remove access manually at myaccount.google.com/permissions.', 'ERROR' );
+				XOAM_Logger::log( 'Token revoke at Google failed — remove access manually at myaccount.google.com/permissions.', 'ERROR' );
 			} else {
-				DIH_SMTP_Logger::log( 'OAuth2 grant revoked at Google.' );
+				XOAM_Logger::log( 'OAuth2 grant revoked at Google.' );
 			}
 		}
 
-		delete_option( DIH_SMTP_TOKEN_KEY );
-		DIH_SMTP_Logger::log( 'OAuth2 token disconnected by admin.' );
+		delete_option( XOAM_TOKEN_KEY );
+		XOAM_Logger::log( 'OAuth2 token disconnected by admin.' );
 	}
 
 	// ── Status ────────────────────────────────────────────────────────────────
 
 	public static function is_connected(): bool {
-		$token = get_option( DIH_SMTP_TOKEN_KEY, [] );
+		$token = get_option( XOAM_TOKEN_KEY, [] );
 		return ! empty( $token['access_token'] );
 	}
 
 	public static function get_token(): array {
-		return get_option( DIH_SMTP_TOKEN_KEY, [] );
+		return get_option( XOAM_TOKEN_KEY, [] );
 	}
 }

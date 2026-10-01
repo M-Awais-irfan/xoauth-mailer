@@ -5,12 +5,12 @@
  * Single source of truth for all plugin settings.
  * Add defaults here when adding new mailer providers.
  *
- * @package DIH_Google_SMTP
+ * @package XOAuth_Mailer
  */
 
 defined( 'ABSPATH' ) || exit;
 
-class DIH_SMTP_Settings {
+class XOAM_Settings {
 
 	/**
 	 * Default settings.
@@ -44,15 +44,15 @@ class DIH_SMTP_Settings {
 	 * A constant keeps the secret out of the database (and out of DB backups).
 	 */
 	private const SECRETS = [
-		'app_password'        => 'DIH_SMTP_APP_PASSWORD',
-		'oauth_client_secret' => 'DIH_SMTP_CLIENT_SECRET',
+		'app_password'        => 'XOAM_APP_PASSWORD',
+		'oauth_client_secret' => 'XOAM_CLIENT_SECRET',
 	];
 
 	/**
 	 * Get all settings merged with defaults.
 	 */
 	public static function get(): array {
-		$saved = get_option( DIH_SMTP_OPTION_KEY, [] );
+		$saved = get_option( XOAM_OPTION_KEY, [] );
 		$merged = wp_parse_args( $saved, self::$defaults );
 
 		// Set dynamic default for from_name if not saved yet
@@ -116,13 +116,13 @@ class DIH_SMTP_Settings {
 
 		// Secrets are never echoed back into the form (see tab-settings.php),
 		// so a blank submission means "keep what's saved", not "erase it".
-		$saved = (array) get_option( DIH_SMTP_OPTION_KEY, [] );
+		$saved = (array) get_option( XOAM_OPTION_KEY, [] );
 		foreach ( array_keys( self::SECRETS ) as $key ) {
 			$value         = sanitize_text_field( $input[ $key ] ?? '' );
 			$clean[ $key ] = '' !== $value ? $value : ( $saved[ $key ] ?? '' );
 		}
 
-		DIH_SMTP_Logger::log( 'Settings saved by user.' );
+		XOAM_Logger::log( 'Settings saved by user.' );
 
 		return $clean;
 	}

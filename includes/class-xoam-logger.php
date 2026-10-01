@@ -5,12 +5,12 @@
  * Stores log entries in the database (wp_options).
  * Keeps last 100 entries. Only writes when debug is enabled.
  *
- * @package DIH_Google_SMTP
+ * @package XOAuth_Mailer
  */
 
 defined( 'ABSPATH' ) || exit;
 
-class DIH_SMTP_Logger {
+class XOAM_Logger {
 
 	private const MAX_ENTRIES = 100;
 
@@ -23,13 +23,13 @@ class DIH_SMTP_Logger {
 	public static function log( string $message, string $level = 'INFO' ): void {
 		// Always log ERROR level regardless of debug toggle
 		if ( $level !== 'ERROR' ) {
-			$debug = DIH_SMTP_Settings::get_one( 'debug_enabled' );
+			$debug = XOAM_Settings::get_one( 'debug_enabled' );
 			if ( $debug !== '1' ) {
 				return;
 			}
 		}
 
-		$log   = get_option( DIH_SMTP_LOG_KEY, [] );
+		$log   = get_option( XOAM_LOG_KEY, [] );
 		$log[] = [
 			'time'    => current_time( 'mysql' ),
 			'level'   => strtoupper( $level ),
@@ -41,21 +41,21 @@ class DIH_SMTP_Logger {
 			$log = array_slice( $log, -self::MAX_ENTRIES );
 		}
 
-		update_option( DIH_SMTP_LOG_KEY, $log, false );
+		update_option( XOAM_LOG_KEY, $log, false );
 	}
 
 	/**
 	 * Retrieve all log entries (newest first).
 	 */
 	public static function get_entries(): array {
-		return array_reverse( get_option( DIH_SMTP_LOG_KEY, [] ) );
+		return array_reverse( get_option( XOAM_LOG_KEY, [] ) );
 	}
 
 	/**
 	 * Clear all log entries.
 	 */
 	public static function clear(): void {
-		delete_option( DIH_SMTP_LOG_KEY );
+		delete_option( XOAM_LOG_KEY );
 	}
 
 	/**

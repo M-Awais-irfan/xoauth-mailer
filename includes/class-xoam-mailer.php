@@ -3,19 +3,19 @@
  * Mailer configuration.
  *
  * Hooks into phpmailer_init to configure PHPMailer for Google Workspace.
- * Injects DIH_SMTP_XOAUTH2 subclass when OAuth2 is the selected auth method.
+ * Injects XOAM_SMTP subclass when OAuth2 is the selected auth method.
  *
  * To add a new provider in the future (Outlook, SendGrid, etc.):
- *   1. Add its settings defaults in DIH_SMTP_Settings::$defaults
+ *   1. Add its settings defaults in XOAM_Settings::$defaults
  *   2. Add a new configure_*() method in this class
  *   3. Call it from configure() based on a provider setting
  *
- * @package DIH_Google_SMTP
+ * @package XOAuth_Mailer
  */
 
 defined( 'ABSPATH' ) || exit;
 
-class DIH_SMTP_Mailer {
+class XOAM_Mailer {
 
 	/**
 	 * XOAUTH2 credential built by configure_oauth2() (priority 10) and consumed
@@ -43,17 +43,17 @@ class DIH_SMTP_Mailer {
 	 * @param PHPMailer\PHPMailer\PHPMailer $phpmailer PHPMailer instance.
 	 */
 	public static function configure( PHPMailer\PHPMailer\PHPMailer $phpmailer ): void {
-		$s = DIH_SMTP_Settings::get();
+		$s = XOAM_Settings::get();
 
 		// Clear any credential left over from an earlier wp_mail() call in this request.
 		self::$xoauth2 = '';
 
 		if ( empty( $s['username'] ) ) {
-			DIH_SMTP_Logger::log( 'SMTP username is empty — skipping SMTP override.', 'WARN' );
+			XOAM_Logger::log( 'SMTP username is empty — skipping SMTP override.', 'WARN' );
 			return;
 		}
 
-		DIH_SMTP_Logger::log( 'Configuring PHPMailer for Google Workspace SMTP.' );
+		XOAM_Logger::log( 'Configuring PHPMailer for Google Workspace SMTP.' );
 
 		// ── Server settings ────────────────────────────────────────────────
 		$phpmailer->isSMTP();
@@ -112,7 +112,7 @@ class DIH_SMTP_Mailer {
 					$line = 'CLIENT -> SERVER: AUTH XOAUTH2 [credentials hidden]';
 				}
 
-				DIH_SMTP_Logger::log( "PHPMailer[$level]: " . $line, 'DEBUG' );
+				XOAM_Logger::log( "PHPMailer[$level]: " . $line, 'DEBUG' );
 
 				// "354 Go ahead" means everything the client sends next is the message itself
 				if ( str_starts_with( $line, 'SERVER -> CLIENT: 354' ) ) {
@@ -121,7 +121,7 @@ class DIH_SMTP_Mailer {
 			};
 		}
 
-		DIH_SMTP_Logger::log( 'PHPMailer configuration complete.' );
+		XOAM_Logger::log( 'PHPMailer configuration complete.' );
 	}
 
 	/**
@@ -131,10 +131,10 @@ class DIH_SMTP_Mailer {
 		PHPMailer\PHPMailer\PHPMailer $phpmailer,
 		array $s
 	): void {
-		DIH_SMTP_Logger::log( 'Auth method: App Password.' );
+		XOAM_Logger::log( 'Auth method: App Password.' );
 
 		if ( empty( $s['app_password'] ) ) {
-			DIH_SMTP_Logger::log( 'App password is empty — email may fail.', 'ERROR' );
+			XOAM_Logger::log( 'App password is empty — email may fail.', 'ERROR' );
 			return;
 		}
 
@@ -150,23 +150,23 @@ class DIH_SMTP_Mailer {
 		PHPMailer\PHPMailer\PHPMailer $phpmailer,
 		array $s
 	): void {
-		DIH_SMTP_Logger::log( 'Auth method: OAuth2.' );
+		XOAM_Logger::log( 'Auth method: OAuth2.' );
 
-		$token = get_option( DIH_SMTP_TOKEN_KEY, [] );
+		$token = get_option( XOAM_TOKEN_KEY, [] );
 
 		if ( empty( $token['access_token'] ) ) {
-			DIH_SMTP_Logger::log( 'OAuth2 access token missing.', 'ERROR' );
+			XOAM_Logger::log( 'OAuth2 access token missing.', 'ERROR' );
 			return;
 		}
 
 		// Refresh if expired
 		if ( ! empty( $token['expires_at'] ) && time() > (int) $token['expires_at'] ) {
-			DIH_SMTP_Logger::log( 'OAuth2 token expired — refreshing.' );
-			$token = DIH_SMTP_OAuth::refresh_token( $token, $s );
+			XOAM_Logger::log( 'OAuth2 token expired — refreshing.' );
+			$token = XOAM_OAuth::refresh_token( $token, $s );
 		}
 
 		if ( empty( $token['access_token'] ) ) {
-			DIH_SMTP_Logger::log( 'OAuth2 token refresh failed.', 'ERROR' );
+			XOAM_Logger::log( 'OAuth2 token refresh failed.', 'ERROR' );
 			return;
 		}
 
@@ -179,7 +179,7 @@ class DIH_SMTP_Mailer {
 			. "\x01\x01"
 		);
 
-		DIH_SMTP_Logger::log( 'XOAUTH2 credential built. Token length: ' . strlen( $token['access_token'] ) );
+		XOAM_Logger::log( 'XOAUTH2 credential built. Token length: ' . strlen( $token['access_token'] ) );
 
 		// Hand over to inject_xoauth2() — same request, so no database needed
 		self::$xoauth2 = $xoauth2;
@@ -194,7 +194,7 @@ class DIH_SMTP_Mailer {
 	 * Runs at priority 20 — after configure() at priority 10.
 	 */
 	public static function inject_xoauth2( PHPMailer\PHPMailer\PHPMailer $phpmailer ): void {
-		$s = DIH_SMTP_Settings::get();
+		$s = XOAM_Settings::get();
 
 		if ( $s['auth_method'] !== 'oauth2' ) {
 			return;
@@ -204,21 +204,21 @@ class DIH_SMTP_Mailer {
 		self::$xoauth2 = ''; // Single use
 
 		if ( empty( $xoauth2 ) ) {
-			DIH_SMTP_Logger::log( 'XOAUTH2 credential missing — cannot inject custom SMTP.', 'ERROR' );
+			XOAM_Logger::log( 'XOAUTH2 credential missing — cannot inject custom SMTP.', 'ERROR' );
 			return;
 		}
 
-		if ( ! class_exists( 'DIH_SMTP_XOAUTH2' ) ) {
-			DIH_SMTP_Logger::log( 'DIH_SMTP_XOAUTH2 class not found.', 'ERROR' );
+		if ( ! class_exists( 'XOAM_SMTP' ) ) {
+			XOAM_Logger::log( 'XOAM_SMTP class not found.', 'ERROR' );
 			return;
 		}
 
-		$smtp_instance              = new DIH_SMTP_XOAUTH2();
+		$smtp_instance              = new XOAM_SMTP();
 		$smtp_instance->xoauth2_token = $xoauth2;
 
 		$phpmailer->setSMTPInstance( $smtp_instance );
 		$phpmailer->SMTPAuth = true; // Re-enable so PHPMailer calls authenticate()
 
-		DIH_SMTP_Logger::log( 'DIH_SMTP_XOAUTH2 injected into PHPMailer.' );
+		XOAM_Logger::log( 'XOAM_SMTP injected into PHPMailer.' );
 	}
 }

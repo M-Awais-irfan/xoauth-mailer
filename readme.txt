@@ -1,18 +1,20 @@
-=== DIH SMTP for Google Workspace ===
+=== XOAuth Mailer – SMTP for Google Workspace ===
 Contributors: awaisirfan
 Tags: smtp, google workspace, gmail, email, oauth2
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 2.1.0
+Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Send all WordPress emails through Google Workspace using OAuth2 or App Password. No extra libraries needed.
+Send WordPress email through Google Workspace with Google's XOAUTH2 SMTP mechanism or an App Password. No extra libraries.
 
 == Description ==
 
-**DIH SMTP for Google Workspace** replaces WordPress's default PHP mail() with a reliable Google Workspace SMTP connection.
+**XOAuth Mailer – SMTP for Google Workspace** replaces WordPress's default PHP mail() with a reliable Google Workspace SMTP connection.
+
+It is built for one job and kept deliberately small: it speaks Google's XOAUTH2 SMTP mechanism directly on top of the PHPMailer that ships with WordPress, so there is no Composer dependency, no Google API client and no OAuth library bundled — just a few small classes you can read in one sitting.
 
 **Features:**
 
@@ -30,8 +32,8 @@ App Passwords are simpler to set up, but the App Password itself is stored in yo
 
 You can keep the App Password or Client Secret out of the database entirely by defining them in `wp-config.php`:
 
-`define( 'DIH_SMTP_APP_PASSWORD', 'your-app-password' );`
-`define( 'DIH_SMTP_CLIENT_SECRET', 'your-client-secret' );`
+`define( 'XOAM_APP_PASSWORD', 'your-app-password' );`
+`define( 'XOAM_CLIENT_SECRET', 'your-client-secret' );`
 
 == External services ==
 
@@ -52,23 +54,23 @@ These services are provided by Google: [Terms of Service](https://policies.googl
 
 == Installation ==
 
-1. Upload the `dih-google-smtp` folder to `/wp-content/plugins/`
+1. Upload the `xoauth-mailer` folder to `/wp-content/plugins/`
 2. Activate the plugin from the Plugins menu
-3. Go to **GWS SMTP** in the admin sidebar
+3. Go to **XOAuth Mailer** in the admin sidebar
 
 **App Password (Quick Setup):**
 
 1. Enable 2-Step Verification on your Google account
 2. Go to myaccount.google.com/apppasswords → create a password named "WordPress"
-3. In GWS SMTP → Settings: enter your email, paste the app password, save
+3. In XOAuth Mailer → Settings: enter your email, paste the app password, save
 4. Send a test email
 
 **OAuth2 (Recommended):**
 
 1. Go to console.cloud.google.com → enable Gmail API
 2. Create an OAuth 2.0 Client ID (Web application type)
-3. Copy the Redirect URI from GWS SMTP → OAuth2 tab into Google Cloud → Authorized redirect URIs
-4. Paste Client ID and Secret into GWS SMTP → Settings → save
+3. Copy the Redirect URI from XOAuth Mailer → OAuth2 tab into Google Cloud → Authorized redirect URIs
+4. Paste Client ID and Secret into XOAuth Mailer → Settings → save
 5. Add your email as a test user in Google Cloud → Audience if in testing mode
 6. Go to OAuth2 tab → click Connect Google Account
 
@@ -81,7 +83,7 @@ No. Everything is self-contained. No Composer, no extra packages.
 Yes. Use the same Client ID and Client Secret on all sites. Add each site's Redirect URI to Google Cloud. Connect each site separately.
 
 = Why does the OAuth2 tab show "Not Connected" after approving? =
-Another plugin (e.g. Constant Contact) may be intercepting the callback. This plugin uses a REST API endpoint (/wp-json/dih-smtp/v1/oauth-callback) which cannot be intercepted. If you upgraded from version 1.x, update the redirect URI in Google Cloud to the one shown in the OAuth2 tab, then reconnect.
+Another plugin (e.g. Constant Contact) may be intercepting the callback. This plugin uses a REST API endpoint (/wp-json/xoauth-mailer/v1/oauth-callback) which cannot be intercepted. If you upgraded from version 1.x, update the redirect URI in Google Cloud to the one shown in the OAuth2 tab, then reconnect.
 
 = Will my settings be deleted if I deactivate the plugin? =
 No. Settings are only deleted when you delete the plugin. Deactivation preserves everything.
@@ -99,10 +101,15 @@ Single-site tested and supported. Multisite support is planned.
 
 == Changelog ==
 
+= 2.2.0 =
+* Changed: plugin renamed to "XOAuth Mailer – SMTP for Google Workspace" (slug: xoauth-mailer); all code, options and hooks now use the "xoam" prefix
+* Changed: OAuth redirect URI is now /wp-json/xoauth-mailer/v1/oauth-callback
+* Added: settings, Google connection and debug log from earlier versions are migrated automatically
+
 = 2.1.0 =
 * Security: OAuth2 access token is no longer written to the debug log
 * Security: saved App Password and Client Secret are no longer printed into the settings page source
-* Security: App Password and Client Secret can be defined in wp-config.php (DIH_SMTP_APP_PASSWORD, DIH_SMTP_CLIENT_SECRET)
+* Security: App Password and Client Secret can be defined in wp-config.php (XOAM_APP_PASSWORD, XOAM_CLIENT_SECRET)
 * Security: secret options are no longer autoloaded
 * Security: OAuth2 credential is no longer stored in a database transient during sending
 * Security: optional token revocation at Google when disconnecting
@@ -116,7 +123,7 @@ Single-site tested and supported. Multisite support is planned.
 * Fixed: escaping, input unslashing and validation flagged by Plugin Check
 * Added: privacy policy suggested text
 * Added: all interface strings are now translatable
-* Changed: plugin renamed to "DIH SMTP for Google Workspace"; Connect button uses a neutral icon
+* Changed: Connect button uses a neutral icon
 
 = 2.0.0 =
 * Complete rewrite with proper file structure and class architecture
@@ -130,6 +137,9 @@ Single-site tested and supported. Multisite support is planned.
 * Initial release
 
 == Upgrade Notice ==
+
+= 2.2.0 =
+Plugin renamed. Your settings and Google connection carry over automatically. Before reconnecting, add the new redirect URI shown in the OAuth2 tab to your Google Cloud OAuth client.
 
 = 2.1.0 =
 Security release. Clear the Debug Log after upgrading. The App Password and Client Secret fields now appear empty — leave them blank to keep the saved values.

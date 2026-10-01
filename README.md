@@ -1,6 +1,6 @@
-# DIH SMTP for Google Workspace — Developer Documentation
+# XOAuth Mailer – SMTP for Google Workspace — Developer Documentation
 
-> **Version:** 2.1.0 | **Author:** Awais Irfan | **PHP:** 8.0+ | **WP:** 6.0+
+> **Version:** 2.2.0 | **Author:** Awais Irfan | **PHP:** 8.0+ | **WP:** 6.0+
 
 ---
 
@@ -21,22 +21,22 @@
 ## Project Structure
 
 ```
-dih-google-smtp/
-├── dih-google-smtp.php          # Bootstrap: constants, autoloader, activation hooks
+xoauth-mailer/
+├── xoauth-mailer.php          # Bootstrap: constants, autoloader, activation hooks
 ├── uninstall.php                # Deletes all plugin data on uninstall
 ├── readme.txt                   # WordPress.org user-facing readme
 ├── README.md                    # This file — developer documentation
 │
 ├── includes/
-│   ├── class-dih-smtp-core.php      # Boots plugin, loads dependencies, registers hooks
-│   ├── class-dih-smtp-settings.php  # Settings CRUD, defaults, sanitization
-│   ├── class-dih-smtp-logger.php    # Debug log (DB-backed, max 100 entries)
-│   ├── class-dih-smtp-mailer.php    # phpmailer_init hook, XOAUTH2 injection
-│   ├── class-dih-smtp-oauth.php     # OAuth2 flow, REST callback, token refresh
-│   └── class-dih-smtp-xoauth2.php  # PHPMailer SMTP subclass for XOAUTH2
+│   ├── class-xoam-core.php      # Boots plugin, loads dependencies, registers hooks
+│   ├── class-xoam-settings.php  # Settings CRUD, defaults, sanitization
+│   ├── class-xoam-logger.php    # Debug log (DB-backed, max 100 entries)
+│   ├── class-xoam-mailer.php    # phpmailer_init hook, XOAUTH2 injection
+│   ├── class-xoam-oauth.php     # OAuth2 flow, REST callback, token refresh
+│   └── class-xoam-smtp.php  # PHPMailer SMTP subclass for XOAUTH2
 │
 ├── admin/
-│   ├── class-dih-smtp-admin.php     # Admin menu, settings registration, form actions
+│   ├── class-xoam-admin.php     # Admin menu, settings registration, form actions
 │   └── views/
 │       ├── tab-settings.php         # Settings form
 │       ├── tab-oauth.php            # OAuth2 setup + connect button
@@ -58,27 +58,27 @@ WordPress boot
      │
 plugins_loaded
      │
-DIH_SMTP_Core::init()
-     ├── load_dependencies()        ← Force-loads PHPMailer SMTP files, then DIH_SMTP_XOAUTH2
+XOAM_Core::init()
+     ├── load_dependencies()        ← Force-loads PHPMailer SMTP files, then XOAM_SMTP
      └── register_hooks()
-           ├── DIH_SMTP_Mailer::register()     ← phpmailer_init (priority 10 + 20)
-           ├── DIH_SMTP_OAuth::register()      ← REST API endpoint
-           ├── DIH_SMTP_Admin::register()      ← admin_menu, admin_init, admin_post_*
-           └── DIH_SMTP_Logger::log_mail_failure() ← wp_mail_failed
+           ├── XOAM_Mailer::register()     ← phpmailer_init (priority 10 + 20)
+           ├── XOAM_OAuth::register()      ← REST API endpoint
+           ├── XOAM_Admin::register()      ← admin_menu, admin_init, admin_post_*
+           └── XOAM_Logger::log_mail_failure() ← wp_mail_failed
 
 wp_mail() called
      │
-phpmailer_init (priority 10) — DIH_SMTP_Mailer::configure()
+phpmailer_init (priority 10) — XOAM_Mailer::configure()
      ├── Sets host, port, encryption, from address
      ├── App Password → sets $phpmailer->Password directly
      └── OAuth2 → builds XOAUTH2 base64 string, keeps it in a static property, sets SMTPAuth=false
      │
-phpmailer_init (priority 20) — DIH_SMTP_Mailer::inject_xoauth2()
-     └── OAuth2 only → swaps $phpmailer->smtp with DIH_SMTP_XOAUTH2 instance
+phpmailer_init (priority 20) — XOAM_Mailer::inject_xoauth2()
+     └── OAuth2 only → swaps $phpmailer->smtp with XOAM_SMTP instance
                         sets xoauth2_token on instance, re-enables SMTPAuth
      │
 SMTP connection
-     └── DIH_SMTP_XOAUTH2::authenticate()
+     └── XOAM_SMTP::authenticate()
            └── Sends: AUTH XOAUTH2 <base64string>
                  Google responds: 235 Authentication succeeded
 ```
@@ -87,7 +87,7 @@ SMTP connection
 
 ## Class Reference
 
-### `DIH_SMTP_Core`
+### `XOAM_Core`
 Singleton. Entry point for the entire plugin.
 
 | Method | Description |
@@ -100,7 +100,7 @@ Singleton. Entry point for the entire plugin.
 
 ---
 
-### `DIH_SMTP_Settings`
+### `XOAM_Settings`
 Static class. Single source of truth for all settings.
 
 | Method | Description |
@@ -116,8 +116,8 @@ Static class. Single source of truth for all settings.
 
 ---
 
-### `DIH_SMTP_Logger`
-Static class. Writes to `wp_options` (key: `dih_google_smtp_debug_log`).
+### `XOAM_Logger`
+Static class. Writes to `wp_options` (key: `xoam_debug_log`).
 
 | Method | Description |
 |--------|-------------|
@@ -128,7 +128,7 @@ Static class. Writes to `wp_options` (key: `dih_google_smtp_debug_log`).
 
 ---
 
-### `DIH_SMTP_Mailer`
+### `XOAM_Mailer`
 Static class. Handles all `phpmailer_init` configuration.
 
 | Method | Description |
@@ -141,13 +141,13 @@ Static class. Handles all `phpmailer_init` configuration.
 
 ---
 
-### `DIH_SMTP_OAuth`
+### `XOAM_OAuth`
 Static class. Manages the full OAuth2 lifecycle.
 
 | Method | Description |
 |--------|-------------|
 | `register()` | Registers REST API route on `rest_api_init`. |
-| `register_rest_route()` | Creates `/wp-json/dih-smtp/v1/oauth-callback` endpoint. |
+| `register_rest_route()` | Creates `/wp-json/xoauth-mailer/v1/oauth-callback` endpoint. |
 | `get_redirect_uri(): string` | Returns the REST endpoint URL for Google Cloud Console. |
 | `get_auth_url(): string` | Builds Google authorization URL with state transient. |
 | `handle_callback(WP_REST_Request)` | Exchanges code for token, stores in DB. |
@@ -158,12 +158,12 @@ Static class. Manages the full OAuth2 lifecycle.
 
 ---
 
-### `DIH_SMTP_XOAUTH2`
+### `XOAM_SMTP`
 Extends `PHPMailer\PHPMailer\SMTP`.
 
 | Property/Method | Description |
 |-----------------|-------------|
-| `$xoauth2_token` | Base64 XOAUTH2 credential string. Set by `DIH_SMTP_Mailer::inject_xoauth2()`. |
+| `$xoauth2_token` | Base64 XOAUTH2 credential string. Set by `XOAM_Mailer::inject_xoauth2()`. |
 | `authenticate(...)` | Overrides parent to send `AUTH XOAUTH2 <token>`. Falls back to parent if token empty. |
 
 **Important:** Method signature must exactly match parent — no type hints.
@@ -175,16 +175,16 @@ Extends `PHPMailer\PHPMailer\SMTP`.
 ```
 Admin clicks "Connect Google Account"
         │
-DIH_SMTP_OAuth::get_auth_url()
-        ├── Generates random $state → transient dih_smtp_oauth_state_{state} = user ID (10 min TTL)
+XOAM_OAuth::get_auth_url()
+        ├── Generates random $state → transient xoam_oauth_state_{state} = user ID (10 min TTL)
         └── Redirects to accounts.google.com/o/oauth2/v2/auth
                 │
         User approves permissions
                 │
 Google redirects to:
-https://yoursite.com/wp-json/dih-smtp/v1/oauth-callback?code=XXX&state=YYY
+https://yoursite.com/wp-json/xoauth-mailer/v1/oauth-callback?code=XXX&state=YYY
                 │
-DIH_SMTP_OAuth::handle_callback()
+XOAM_OAuth::handle_callback()
         ├── Looks up the state transient (CSRF protection; single-use)
         ├── Checks the initiating user still has manage_options
         │   (no login session here — Google's redirect carries no WP REST nonce)
@@ -194,7 +194,7 @@ DIH_SMTP_OAuth::handle_callback()
 ```
 
 **Why REST API for the callback?**
-Other OAuth plugins (Constant Contact, Jetpack, etc.) hook into `admin_init` and scan for `?code=` in any admin URL. The REST API namespace `/wp-json/dih-smtp/v1/` is completely isolated — no other plugin's hooks run on it.
+Other OAuth plugins (Constant Contact, Jetpack, etc.) hook into `admin_init` and scan for `?code=` in any admin URL. The REST API namespace `/wp-json/xoauth-mailer/v1/` is completely isolated — no other plugin's hooks run on it.
 
 ---
 
@@ -219,7 +219,7 @@ and override `authenticate()` to send this command directly.
 **Two-hook approach (why):**
 We use two `phpmailer_init` hooks:
 - Priority 10: Configure SMTP settings, build XOAUTH2 string, keep it in a static property (same request — never written to the DB)
-- Priority 20: Swap in `DIH_SMTP_XOAUTH2` instance and attach token
+- Priority 20: Swap in `XOAM_SMTP` instance and attach token
 
 This separation ensures the SMTP subclass is only injected after all
 configuration is complete, and only when OAuth2 is the selected method.
@@ -232,7 +232,7 @@ configuration is complete, and only when OAuth2 is the selected method.
 
 ### Step 1 — Add settings defaults
 
-In `includes/class-dih-smtp-settings.php`, add to `$defaults`:
+In `includes/class-xoam-settings.php`, add to `$defaults`:
 
 ```php
 'provider'             => 'google',   // 'google' | 'outlook' | 'sendgrid'
@@ -243,7 +243,7 @@ In `includes/class-dih-smtp-settings.php`, add to `$defaults`:
 
 ### Step 2 — Add provider config to Mailer
 
-In `includes/class-dih-smtp-mailer.php`, update `configure()`:
+In `includes/class-xoam-mailer.php`, update `configure()`:
 
 ```php
 // Change SMTP host/port based on provider
@@ -270,7 +270,7 @@ private static function configure_outlook_oauth(
 ): void {
     // Microsoft uses different OAuth endpoints + scopes
     // Build XOAUTH2 string same way, different token source
-    DIH_SMTP_Logger::log( 'Auth method: Outlook OAuth2.' );
+    XOAM_Logger::log( 'Auth method: Outlook OAuth2.' );
     // ... your implementation
 }
 ```
@@ -278,27 +278,27 @@ private static function configure_outlook_oauth(
 ### Step 3 — Add OAuth class for provider (optional)
 
 If the provider needs its own OAuth flow, create:
-`includes/class-dih-smtp-outlook-oauth.php`
+`includes/class-xoam-outlook-oauth.php`
 
-Mirror the structure of `DIH_SMTP_OAuth` but with Microsoft endpoints:
+Mirror the structure of `XOAM_OAuth` but with Microsoft endpoints:
 - Auth URL: `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize`
 - Token URL: `https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token`
 - Scope: `https://outlook.office365.com/SMTP.Send offline_access`
 
-Register its REST route in `DIH_SMTP_Core::register_hooks()`.
+Register its REST route in `XOAM_Core::register_hooks()`.
 
 ### Step 4 — Add admin UI
 
 Add settings fields to `admin/views/tab-settings.php` under a new provider section.
 Add a new tab view `admin/views/tab-outlook-oauth.php` if needed.
-Add the tab key to `$tabs` array in `DIH_SMTP_Admin::render_page()`.
+Add the tab key to `$tabs` array in `XOAM_Admin::render_page()`.
 
 ### Step 5 — Update autoloader
 
-Add the new class to the map in `dih-google-smtp.php`:
+Add the new class to the map in `xoauth-mailer.php`:
 
 ```php
-'DIH_SMTP_Outlook_OAuth' => 'includes/class-dih-smtp-outlook-oauth.php',
+'XOAM_Outlook_OAuth' => 'includes/class-xoam-outlook-oauth.php',
 ```
 
 ---
@@ -310,17 +310,17 @@ Planned filter hooks for next release:
 
 ```php
 // Modify SMTP settings before PHPMailer is configured
-apply_filters( 'dih_smtp_mailer_settings', $settings );
+apply_filters( 'xoam_mailer_settings', $settings );
 
 // Modify the XOAUTH2 string before it is sent
-apply_filters( 'dih_smtp_xoauth2_string', $xoauth2, $username );
+apply_filters( 'xoam_xoauth2_string', $xoauth2, $username );
 
 // Modify the OAuth2 scopes requested from Google
-apply_filters( 'dih_smtp_oauth_scopes', 'https://mail.google.com/' );
+apply_filters( 'xoam_oauth_scopes', 'https://mail.google.com/' );
 ```
 
 To add these, wrap the relevant values in `apply_filters()` calls inside
-`DIH_SMTP_Mailer` and `DIH_SMTP_OAuth`.
+`XOAM_Mailer` and `XOAM_OAuth`.
 
 ---
 
@@ -331,14 +331,14 @@ This plugin follows [WordPress Coding Standards](https://developer.wordpress.org
 - All output escaped with `esc_html()`, `esc_attr()`, `esc_url()`
 - All input sanitized before use or storage
 - Nonces on all admin form submissions (`wp_nonce_field` + `check_admin_referer`)
-- Text domain `dih-google-smtp` on all translatable strings
+- Text domain `xoauth-mailer` on all translatable strings
 - No inline SQL — use `$wpdb` prepared statements if DB queries needed
 - `defined( 'ABSPATH' ) || exit;` at top of every file
 
 **To run PHPCS:**
 ```bash
 composer require --dev wp-coding-standards/wpcs
-vendor/bin/phpcs --standard=WordPress includes/ admin/ dih-google-smtp.php
+vendor/bin/phpcs --standard=WordPress includes/ admin/ xoauth-mailer.php
 ```
 
 ---
@@ -346,7 +346,7 @@ vendor/bin/phpcs --standard=WordPress includes/ admin/ dih-google-smtp.php
 ## Debugging
 
 ### Enable debug log
-Go to **GWS SMTP → Settings → Enable Debug Log → Save**.
+Go to **XOAuth Mailer → Settings → Enable Debug Log → Save**.
 
 The Debug Log tab shows:
 - Full PHPMailer SMTP conversation (CLIENT ↔ SERVER)
@@ -358,7 +358,7 @@ The Debug Log tab shows:
 
 | Entry | Meaning |
 |-------|---------|
-| `DIH_SMTP_XOAUTH2 injected into PHPMailer` | XOAUTH2 class successfully swapped in |
+| `XOAM_SMTP injected into PHPMailer` | XOAUTH2 class successfully swapped in |
 | `Sending AUTH XOAUTH2 command` | About to authenticate with Google |
 | `235 Authentication succeeded` | OAuth2 auth working |
 | `XOAUTH2 credential missing` | Token build failed — check configure_oauth2() |
@@ -367,11 +367,11 @@ The Debug Log tab shows:
 ### Direct DB inspection
 ```sql
 -- Check stored token
-SELECT option_value FROM wp_options WHERE option_name = 'dih_google_smtp_oauth_token';
+SELECT option_value FROM wp_options WHERE option_name = 'xoam_oauth_token';
 
 -- Check settings
-SELECT option_value FROM wp_options WHERE option_name = 'dih_google_smtp_settings';
+SELECT option_value FROM wp_options WHERE option_name = 'xoam_settings';
 
 -- Check log
-SELECT option_value FROM wp_options WHERE option_name = 'dih_google_smtp_debug_log';
+SELECT option_value FROM wp_options WHERE option_name = 'xoam_debug_log';
 ```

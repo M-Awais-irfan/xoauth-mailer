@@ -1,45 +1,45 @@
 <?php
 /**
- * Plugin Name:       DIH SMTP for Google Workspace
+ * Plugin Name:       XOAuth Mailer – SMTP for Google Workspace
  * Plugin URI:        https://github.com/M-Awais-irfan/xoauth-mailer
- * Description:       Send all WordPress emails via Google Workspace using OAuth2 or App Password.
- * Version:           2.1.0
+ * Description:       Send WordPress email through Google Workspace using Google's XOAUTH2 SMTP mechanism (or an App Password), built on WordPress's bundled PHPMailer with no extra libraries.
+ * Version:           2.2.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Awais Irfan
  * Author URI:        https://awaisirfan.com/
  * License:           GPLv2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       dih-google-smtp
+ * Text Domain:       xoauth-mailer
  *
- * @package DIH_Google_SMTP
+ * @package XOAuth_Mailer
  */
 
 defined( 'ABSPATH' ) || exit;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-define( 'DIH_SMTP_VERSION',    '2.1.0' );
-define( 'DIH_SMTP_FILE',       __FILE__ );
-define( 'DIH_SMTP_DIR',        plugin_dir_path( __FILE__ ) );
-define( 'DIH_SMTP_URL',        plugin_dir_url( __FILE__ ) );
-define( 'DIH_SMTP_OPTION_KEY', 'dih_google_smtp_settings' );
-define( 'DIH_SMTP_LOG_KEY',    'dih_google_smtp_debug_log' );
-define( 'DIH_SMTP_TOKEN_KEY',  'dih_google_smtp_oauth_token' );
+define( 'XOAM_VERSION',    '2.2.0' );
+define( 'XOAM_FILE',       __FILE__ );
+define( 'XOAM_DIR',        plugin_dir_path( __FILE__ ) );
+define( 'XOAM_URL',        plugin_dir_url( __FILE__ ) );
+define( 'XOAM_OPTION_KEY', 'xoam_settings' );
+define( 'XOAM_LOG_KEY',    'xoam_debug_log' );
+define( 'XOAM_TOKEN_KEY',  'xoam_oauth_token' );
 
 // ── Autoloader ────────────────────────────────────────────────────────────────
 spl_autoload_register( function ( string $class ): void {
 	$map = [
-		'DIH_SMTP_Core'     => 'includes/class-dih-smtp-core.php',
-		'DIH_SMTP_Settings' => 'includes/class-dih-smtp-settings.php',
-		'DIH_SMTP_Logger'   => 'includes/class-dih-smtp-logger.php',
-		'DIH_SMTP_Mailer'   => 'includes/class-dih-smtp-mailer.php',
-		'DIH_SMTP_OAuth'    => 'includes/class-dih-smtp-oauth.php',
-		'DIH_SMTP_Admin'    => 'admin/class-dih-smtp-admin.php',
-		'DIH_SMTP_XOAUTH2'  => 'includes/class-dih-smtp-xoauth2.php',
+		'XOAM_Core'     => 'includes/class-xoam-core.php',
+		'XOAM_Settings' => 'includes/class-xoam-settings.php',
+		'XOAM_Logger'   => 'includes/class-xoam-logger.php',
+		'XOAM_Mailer'   => 'includes/class-xoam-mailer.php',
+		'XOAM_OAuth'    => 'includes/class-xoam-oauth.php',
+		'XOAM_Admin'    => 'admin/class-xoam-admin.php',
+		'XOAM_SMTP'     => 'includes/class-xoam-smtp.php',
 	];
 
 	if ( isset( $map[ $class ] ) ) {
-		$file = DIH_SMTP_DIR . $map[ $class ];
+		$file = XOAM_DIR . $map[ $class ];
 		if ( file_exists( $file ) ) {
 			require_once $file;
 		}
@@ -47,8 +47,8 @@ spl_autoload_register( function ( string $class ): void {
 } );
 
 // ── Activation / Deactivation ─────────────────────────────────────────────────
-register_activation_hook( __FILE__, [ 'DIH_SMTP_Core', 'activate' ] );
-register_deactivation_hook( __FILE__, [ 'DIH_SMTP_Core', 'deactivate' ] );
+register_activation_hook( __FILE__, [ 'XOAM_Core', 'activate' ] );
+register_deactivation_hook( __FILE__, [ 'XOAM_Core', 'deactivate' ] );
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-add_action( 'plugins_loaded', [ 'DIH_SMTP_Core', 'init' ] );
+add_action( 'plugins_loaded', [ 'XOAM_Core', 'init' ] );

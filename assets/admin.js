@@ -1,4 +1,4 @@
-/* DIH SMTP for Google Workspace — Admin JS */
+/* XOAuth Mailer – SMTP for Google Workspace — Admin JS */
 (function () {
 	'use strict';
 
@@ -12,9 +12,9 @@
 
 		var isOauth = selected.value === 'oauth2';
 
-		var rowApp    = document.getElementById( 'row-app-password' );
-		var rowId     = document.getElementById( 'row-oauth-id' );
-		var rowSecret = document.getElementById( 'row-oauth-secret' );
+		var rowApp    = document.getElementById( 'xoam-row-app-password' );
+		var rowId     = document.getElementById( 'xoam-row-oauth-id' );
+		var rowSecret = document.getElementById( 'xoam-row-oauth-secret' );
 
 		if ( rowApp )    rowApp.style.display    = isOauth ? 'none' : '';
 		if ( rowId )     rowId.style.display     = isOauth ? '' : 'none';
@@ -45,7 +45,7 @@
 		var label = btn.textContent.trim();
 
 		function showCopied() {
-			btn.textContent = __( 'Copied!', 'dih-google-smtp' );
+			btn.textContent = __( 'Copied!', 'xoauth-mailer' );
 			setTimeout( function () { btn.textContent = label; }, 2000 );
 		}
 
