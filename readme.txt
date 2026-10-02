@@ -4,7 +4,7 @@ Tags: smtp, google workspace, gmail, email, oauth2
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 2.2.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -103,5 +103,5 @@ Single-site tested and supported. Multisite support is planned.
 
 == Changelog ==
 
-= 2.2.0 =
-* First release on WordPress.org.
+= 1.0.0 =
+* Initial release.

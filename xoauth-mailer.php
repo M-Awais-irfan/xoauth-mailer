@@ -3,7 +3,7 @@
  * Plugin Name:       XOAuth Mailer for Google Workspace
  * Plugin URI:        https://github.com/M-Awais-irfan/xoauth-mailer
  * Description:       Send WordPress email through Google Workspace using Google's XOAUTH2 SMTP mechanism (or an App Password), built on WordPress's bundled PHPMailer with no extra libraries.
- * Version:           2.2.0
+ * Version:           1.0.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Awais Irfan
@@ -18,7 +18,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Constants
-define( 'XOAM_VERSION',    '2.2.0' );
+define( 'XOAM_VERSION',    '1.0.0' );
 define( 'XOAM_FILE',       __FILE__ );
 define( 'XOAM_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'XOAM_URL',        plugin_dir_url( __FILE__ ) );
