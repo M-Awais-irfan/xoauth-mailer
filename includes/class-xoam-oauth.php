@@ -120,11 +120,10 @@ class XOAM_OAuth {
 		$code  = (string) $request->get_param( 'code' );
 		$state = (string) $request->get_param( 'state' );
 
-		// Validate state transient
-		// This is the main security check; it stands in for a nonce.
-		// Only accept the 32-char alphanumeric shape get_auth_url() generates
-		// before using the value in a transient name. \z is used instead of $ because, in PCRE,
-		// $ also matches before a trailing newline.)
+		// Validate the state value. This is the main security check; it stands in for a nonce.
+		// Only accept the 32-char alphanumeric shape get_auth_url() generates before using
+		// it in a transient name. \z is used instead of $ because, in PCRE, $ also matches
+		// before a trailing newline.
 		$user_id = preg_match( '/^[A-Za-z0-9]{32}\z/', $state )
 			? (int) get_transient( 'xoam_oauth_state_' . $state )
 			: 0;

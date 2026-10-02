@@ -3,12 +3,7 @@
  * Mailer configuration.
  *
  * Hooks into phpmailer_init to configure PHPMailer for Google Workspace.
- * Injects XOAM_SMTP subclass when OAuth2 is the selected auth method.
- *
- * To add a new provider in the future (Outlook, SendGrid, etc.):
- *   1. Add its settings defaults in XOAM_Settings::$defaults
- *   2. Add a new configure_*() method in this class
- *   3. Call it from configure() based on a provider setting
+ * Injects the XOAM_SMTP subclass when OAuth2 is the selected auth method.
  *
  * @package XOAuth_Mailer
  */

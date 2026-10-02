@@ -3,7 +3,6 @@
  * Settings management.
  *
  * Single source of truth for all plugin settings.
- * Add defaults here when adding new mailer providers.
  *
  * @package XOAuth_Mailer
  */
@@ -14,7 +13,6 @@ class XOAM_Settings {
 
 	/**
 	 * Default settings.
-	 * To add a new provider in future, add its defaults here.
 	 */
 	private static array $defaults = [
 		// Sender identity

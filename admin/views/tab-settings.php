@@ -107,7 +107,7 @@
 							'<a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer">myaccount.google.com/apppasswords</a>'
 						);
 						?>
-						<?php esc_html_e( 'Requires 2FA enabled.', 'xoauth-mailer' ); ?>
+						<?php esc_html_e( 'Requires 2-Step Verification.', 'xoauth-mailer' ); ?>
 					</p>
 				</td>
 			</tr>
